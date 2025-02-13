@@ -42,7 +42,7 @@ export default function Home() {
           <audio
             id="audio-player"
             src="/webaudio2.mp3"
-            autoPlay
+            // autoPlay
             loop
             ref={audioPlayer}
           />
@@ -60,10 +60,20 @@ export default function Home() {
               height={350}
             />
           </div>
-          <div className={styles.titleReleases}>
+          <Link
+            className={styles.titleReleases}
+            href="https://youtu.be/wLv24iTLSs4?si=iH2G9XwwDw5QDJXh"
+          >
             <h4>PAUSA AL AMOR</h4>
             <span>FRAGMENTADO</span>
-          </div>
+            <Image
+              src="/plataformas/yt_logo_rgb_light.png"
+              layout="intrinsic"
+              height={40}
+              width={80}
+              alt="logo youtube"
+            />
+          </Link>
 
           {StreamingPLatforms.map((platform) => (
             <div className={styles.streamingLinkWrap} key={platform.title}>
@@ -72,7 +82,7 @@ export default function Home() {
                 layout="intrinsic"
                 height={40}
                 width={80}
-                alt="logo spotify"
+                alt={platform.title}
               />
               <Link className={styles.streamingLink} href={platform.link}>
                 Escuchar
