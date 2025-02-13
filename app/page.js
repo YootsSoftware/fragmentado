@@ -9,6 +9,29 @@ import { faPlayCircle } from '@fortawesome/free-regular-svg-icons';
 export default function Home() {
   const audioPlayer = useRef(null);
 
+  const StreamingPLatforms = [
+    {
+      title: 'spotify',
+      icon: '/plataformas/Spotify_Logo_RGB_Green.png',
+      link: 'https://open.spotify.com/track/5qdFk8TPnksQginDPcXrbY?si=a157fa13cfdd4d57',
+    },
+    {
+      title: 'apple music',
+      icon: '/plataformas/Apple-Music-logo1.png',
+      link: 'https://music.apple.com/mx/album/pausa-al-amor/1725307186?i=1725307324&l=en-GB',
+    },
+    {
+      title: 'amazon music',
+      icon: '/plataformas/Amazon_Music_White.png',
+      link: 'https://music.amazon.com.mx/albums/B0CS3SMQ7P?marketplaceId=ART4WZ8MWBX2Y&musicTerritory=MX&ref=dm_sh_h4PX4RTZqTRxwbisYq0Ce2bSk&trackAsin=B0CS3R4KZ1',
+    },
+    {
+      title: 'Deezer music',
+      icon: '/plataformas/deezer-logo_brandlogos.net_kzlnq-white.png',
+      link: 'https://deezer.page.link/a2Eg2etxmFe9cqHv9',
+    },
+  ];
+
   const PlayAudio = () => {
     audioPlayer.current.play();
   };
@@ -18,7 +41,7 @@ export default function Home() {
         <div className={styles.center}>
           <audio
             id="audio-player"
-            src="/webaudio.mp3"
+            src="/webaudio2.mp3"
             autoPlay
             loop
             ref={audioPlayer}
@@ -31,27 +54,31 @@ export default function Home() {
             />
             <Image
               className={styles.cover}
-              src="/tjuro-min.png"
+              src="/pausa-min.jpg"
               alt="T-JURO PORTADA"
               width={350}
               height={350}
             />
           </div>
+          <div className={styles.titleReleases}>
+            <h4>PAUSA AL AMOR</h4>
+            <span>FRAGMENTADO</span>
+          </div>
 
-          <h1>FRAGMENTADO</h1>
-          <span>Relatando Historias</span>
-          <Link
-            className={styles.links}
-            href="https://accounts.spotify.com/authorize?client_id=949a9d817b514ea1b74fdf9991c71f1a&redirect_uri=https%3A%2F%2Fsmartlink-api.amuse.io%2Fpre-saves%2Fcallback&scope=user-library-modify+user-follow-modify&response_type=code&state=eyJyZWxlYXNlX2lkIjogMjU0NTExOH0%3D"
-          >
-            <Image
-              src="/Spotify_Icon_RGB_White.png"
-              width={30}
-              height={30}
-              alt="logo spotify"
-            />
-            <p>Pre-Save on Spotify</p>
-          </Link>
+          {StreamingPLatforms.map((platform) => (
+            <div className={styles.streamingLinkWrap} key={platform.title}>
+              <Image
+                src={platform.icon}
+                layout="intrinsic"
+                height={40}
+                width={80}
+                alt="logo spotify"
+              />
+              <Link className={styles.streamingLink} href={platform.link}>
+                Escuchar
+              </Link>
+            </div>
+          ))}
         </div>
       </main>
       <footer className={styles.footer}>
