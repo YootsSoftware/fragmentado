@@ -65,7 +65,7 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.502);
+    box-shadow: 0 0 10px #833b28;
   }
   to {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -90,10 +90,15 @@
 .titleReleases span {
   font-size: 12px;
   letter-spacing: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+}
+.titleReleases .tag {
+  font-size: 10px;
+  letter-spacing: 0px;
+  margin-bottom: 5px;
 }
 .titleReleases:hover {
-  background-color: rgba(0, 242, 255, 0.312);
+  background-color: #bb6b55;
   color: #fff;
 }
 

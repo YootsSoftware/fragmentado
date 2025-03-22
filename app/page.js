@@ -13,22 +13,22 @@ export default function Home() {
     {
       title: 'spotify',
       icon: '/plataformas/Spotify_Logo_RGB_Green.png',
-      link: 'https://open.spotify.com/track/5qdFk8TPnksQginDPcXrbY?si=a157fa13cfdd4d57',
+      link: 'https://open.spotify.com/track/75QljW8Oln5LN1IfCkiCXb?si=b294f76c4ebc4024',
     },
-    {
-      title: 'apple music',
-      icon: '/plataformas/Apple-Music-logo1.png',
-      link: 'https://music.apple.com/mx/album/pausa-al-amor/1725307186?i=1725307324&l=en-GB',
-    },
+    // {
+    //   title: 'apple music',
+    //   icon: '/plataformas/Apple-Music-logo1.png',
+    //   link: 'https://music.apple.com/mx/album/pausa-al-amor/1725307186?i=1725307324&l=en-GB',
+    // },
     {
       title: 'amazon music',
       icon: '/plataformas/Amazon_Music_White.png',
-      link: 'https://music.amazon.com.mx/albums/B0CS3SMQ7P?marketplaceId=ART4WZ8MWBX2Y&musicTerritory=MX&ref=dm_sh_h4PX4RTZqTRxwbisYq0Ce2bSk&trackAsin=B0CS3R4KZ1',
+      link: 'https://music.amazon.com.mx/albums/B0F1CB58G8?marketplaceId=ART4WZ8MWBX2Y&musicTerritory=MX&ref=dm_sh_FywHFFu7M6MwDaV50Us2LQm7X&trackAsin=B0F1CDWWQS',
     },
     {
       title: 'Deezer music',
       icon: '/plataformas/deezer-logo_brandlogos.net_kzlnq-white.png',
-      link: 'https://deezer.page.link/a2Eg2etxmFe9cqHv9',
+      link: 'https://dzr.page.link/diDztj33X8xPAjiC8',
     },
   ];
 
@@ -41,7 +41,7 @@ export default function Home() {
         <div className={styles.center}>
           <audio
             id="audio-player"
-            src="/webaudio2.mp3"
+            src="/webaudio3.mp3"
             // autoPlay
             loop
             ref={audioPlayer}
@@ -54,18 +54,19 @@ export default function Home() {
             />
             <Image
               className={styles.cover}
-              src="/pausa-min.jpg"
-              alt="T-JURO PORTADA"
+              src="/andamospresentes.jpg"
+              alt="ANDAMOS PRESENTES"
               width={350}
               height={350}
             />
           </div>
           <Link
             className={styles.titleReleases}
-            href="https://youtu.be/wLv24iTLSs4?si=iH2G9XwwDw5QDJXh"
+            href="https://youtu.be/vUcZ0PLADuU?si=-JmL17mUI_cfP5If"
           >
-            <h4>PAUSA AL AMOR</h4>
+            <h4>ANDAMOS PRESENTES</h4>
             <span>FRAGMENTADO</span>
+            {/* <span className={styles.tag}>(Video Lyric)</span> */}
             <Image
               src="/plataformas/yt_logo_rgb_light.png"
               layout="intrinsic"
