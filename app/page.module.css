@@ -59,13 +59,14 @@
 }
 .cover {
   z-index: 1;
-  animation: glow 5s ease-in-out infinite alternate;
+  /* animation: glow 5s ease-in-out infinite alternate; */
   border-radius: 5px 5px 0 0;
+  box-sizing: content-box;
 }
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 10px #833b28;
+    box-shadow: 0 0 10px #287283;
   }
   to {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -98,7 +99,7 @@
   margin-bottom: 5px;
 }
 .titleReleases:hover {
-  background-color: #bb6b55;
+  background-color: #9f725f;
   color: #fff;
 }
 
