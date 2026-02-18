@@ -30,39 +30,6 @@
   ],
   "releases": [
     {
-      "id": "donde-empieza-termina",
-      "albumId": "relatando-historias",
-      "badge": "Lanzamiento publicado",
-      "title": "Donde Empieza & Termina",
-      "artist": "FRAGMENTADO",
-      "year": "2025",
-      "releaseDate": "2025-08-20",
-      "cover": "https://i.scdn.co/image/ab67616d0000b273d31a0d315d8e2efec6935007",
-      "previewAudio": "",
-      "youtube": "",
-      "sourceSpotifyTrackId": "2uGjILne0Ox9rl5n1CKwoj",
-      "sourceSpotifyAlbumId": "6jjcC48BD2b9cB3gK7GEGg",
-      "sourceSpotifyAlbumName": "Donde Empieza & Termina",
-      "platforms": [
-        {
-          "title": "spotify",
-          "icon": "/plataformas/Spotify_Logo_RGB_Green.png",
-          "link": "https://open.spotify.com/track/2uGjILne0Ox9rl5n1CKwoj"
-        },
-        {
-          "title": "apple music",
-          "icon": "/plataformas/Apple-Music-logo1.png",
-          "link": "https://geo.music.apple.com/us/album/_/1834330885?i=1834330886&mt=1&app=music&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m"
-        },
-        {
-          "title": "amazon music",
-          "icon": "/plataformas/Amazon_Music_White.png",
-          "link": "https://music.amazon.com/albums/B0FN3S5T7F?trackAsin=B0FN3Q3L56"
-        }
-      ],
-      "isUpcoming": false
-    },
-    {
       "id": "andamos-presentes",
       "albumId": "relatando-historias",
       "badge": "Lanzamiento publicado",
@@ -315,6 +282,39 @@
           "title": "apple music",
           "icon": "/plataformas/Apple-Music-logo1.png",
           "link": "https://geo.music.apple.com/us/album/_/1685670484?i=1685670486&mt=1&app=music&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m"
+        }
+      ],
+      "isUpcoming": false
+    },
+    {
+      "id": "donde-empieza-termina",
+      "albumId": "relatando-historias",
+      "badge": "Lanzamiento publicado",
+      "title": "Donde Empieza & Termina",
+      "artist": "FRAGMENTADO",
+      "year": "2025",
+      "releaseDate": "2025-08-20",
+      "cover": "https://i.scdn.co/image/ab67616d0000b273d31a0d315d8e2efec6935007",
+      "previewAudio": "",
+      "youtube": "",
+      "sourceSpotifyTrackId": "2uGjILne0Ox9rl5n1CKwoj",
+      "sourceSpotifyAlbumId": "6jjcC48BD2b9cB3gK7GEGg",
+      "sourceSpotifyAlbumName": "Donde Empieza & Termina",
+      "platforms": [
+        {
+          "title": "spotify",
+          "icon": "/plataformas/Spotify_Logo_RGB_Green.png",
+          "link": "https://open.spotify.com/track/2uGjILne0Ox9rl5n1CKwoj"
+        },
+        {
+          "title": "apple music",
+          "icon": "/plataformas/Apple-Music-logo1.png",
+          "link": "https://geo.music.apple.com/us/album/_/1834330885?i=1834330886&mt=1&app=music&ls=1&at=1000lHKX&ct=api_http&itscg=30200&itsct=odsl_m"
+        },
+        {
+          "title": "amazon music",
+          "icon": "/plataformas/Amazon_Music_White.png",
+          "link": "https://music.amazon.com/albums/B0FN3S5T7F?trackAsin=B0FN3Q3L56"
         }
       ],
       "isUpcoming": false

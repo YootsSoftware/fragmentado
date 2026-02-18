@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAdmin, setAdmin } from '../../../../lib/server/content-store';
 import { hashPassword, setSessionCookie } from '../../../../lib/server/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
   const existingAdmin = await getAdmin();
   if (existingAdmin) {
@@ -27,7 +29,14 @@ export async function POST(request) {
     createdAt: new Date().toISOString(),
   });
 
-  const response = NextResponse.json({ ok: true, username });
+  const response = NextResponse.json(
+    { ok: true, username },
+    {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    },
+  );
   setSessionCookie(response, username);
   return response;
 }

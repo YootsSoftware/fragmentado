@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAdmin } from '../../../../lib/server/content-store';
 import { setSessionCookie, verifyPassword } from '../../../../lib/server/admin-auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
   const admin = await getAdmin();
   if (!admin) {
@@ -21,7 +23,14 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Credenciales invalidas.' }, { status: 401 });
   }
 
-  const response = NextResponse.json({ ok: true, username });
+  const response = NextResponse.json(
+    { ok: true, username },
+    {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    },
+  );
   setSessionCookie(response, username);
   return response;
 }

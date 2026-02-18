@@ -382,7 +382,10 @@ export default function AdminPage() {
 
   const refreshSession = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/session', { cache: 'no-store' });
+      const response = await fetch('/api/admin/session', {
+        cache: 'no-store',
+        credentials: 'include',
+      });
       const data = await readJsonSafe(response);
       if (!response.ok || !data) {
         setSession({
@@ -519,6 +522,7 @@ export default function AdminPage() {
     try {
       const response = await fetch('/api/admin/bootstrap', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
       });
@@ -543,6 +547,7 @@ export default function AdminPage() {
     try {
       const response = await fetch('/api/admin/login', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
       });
@@ -565,7 +570,7 @@ export default function AdminPage() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/admin/logout', { method: 'POST' });
+    await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
     setReleases([]);
     setSelectedId('');
     setDraft(emptyRelease);
