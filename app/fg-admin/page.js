@@ -873,9 +873,33 @@ export default function AdminPage() {
     event.preventDefault();
     setSaveError('');
     setMessage('');
-    const resolvedReleaseId = isNew
-      ? generatedReleaseId
-      : draft.id || generatedReleaseId;
+    const normalizedDraftTitle = slugify(draft.title);
+    const normalizedDraftDate = normalizeDateComparable(draft.releaseDate);
+    const normalizedDraftSpotifyTrackId = String(draft.sourceSpotifyTrackId ?? '').trim();
+    const existingReleaseMatch = releases.find((release) => {
+      if (draft.id && release.id === draft.id) return true;
+      if (
+        normalizedDraftSpotifyTrackId &&
+        String(release.sourceSpotifyTrackId ?? '').trim() === normalizedDraftSpotifyTrackId
+      ) {
+        return true;
+      }
+      if (!normalizedDraftTitle) return false;
+      const sameTitle = slugify(release.title) === normalizedDraftTitle;
+      if (!sameTitle) return false;
+      const sameAlbum = String(release.albumId ?? '') === String(draft.albumId ?? '');
+      if (!sameAlbum) return false;
+      const releaseDate = normalizeDateComparable(release.releaseDate);
+      if (normalizedDraftDate) return releaseDate === normalizedDraftDate;
+      return true;
+    });
+
+    const shouldUpdateExisting = Boolean(existingReleaseMatch && (isNew || !draft.id));
+    const resolvedReleaseId = shouldUpdateExisting
+      ? existingReleaseMatch.id
+      : isNew
+        ? generatedReleaseId
+        : draft.id || generatedReleaseId;
     if (!resolvedReleaseId) {
       setSaveError('Escribe el titulo para generar el id de la cancion.');
       return;
@@ -927,7 +951,7 @@ export default function AdminPage() {
       },
     };
 
-    const method = isNew ? 'POST' : 'PUT';
+    const method = shouldUpdateExisting ? 'PUT' : isNew ? 'POST' : 'PUT';
     const response = await fetch('/api/admin/releases', {
       method,
       headers: { 'Content-Type': 'application/json' },

@@ -102,6 +102,30 @@
   );
 }
 
+.emptyStateCard {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 640px);
+  margin: 7rem auto 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.2rem 1.15rem;
+  text-align: center;
+}
+
+.emptyStateCard h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.emptyStateCard p {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .hero {
   position: relative;
   z-index: 1;

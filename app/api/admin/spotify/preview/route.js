@@ -11,6 +11,22 @@ const ensureAuth = (request) => {
   return username;
 };
 
+const readSpotifyPayload = async (response) => {
+  const raw = await response.text();
+  let payload = null;
+  if (raw) {
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      payload = null;
+    }
+  }
+  const message =
+    String(payload?.error_description ?? payload?.error?.message ?? payload?.error ?? '').trim() ||
+    raw.trim();
+  return { payload, message };
+};
+
 const getSpotifyTrackId = (value) => {
   const raw = String(value ?? '').trim();
   if (!raw) return '';
@@ -45,9 +61,15 @@ const getSpotifyAccessToken = async (clientId, clientSecret) => {
     cache: 'no-store',
   });
 
-  const payload = await response.json();
+  const { payload, message } = await readSpotifyPayload(response);
   if (!response.ok || !payload?.access_token) {
-    throw new Error(payload?.error_description || payload?.error || 'No se pudo autenticar con Spotify.');
+    if (response.status === 429) {
+      const retryAfter = String(response.headers.get('retry-after') ?? '').trim();
+      throw new Error(
+        `Spotify limito temporalmente la solicitud.${retryAfter ? ` Reintenta en ${retryAfter}s.` : ''}`,
+      );
+    }
+    throw new Error(message || 'No se pudo autenticar con Spotify.');
   }
   return payload.access_token;
 };
@@ -60,9 +82,15 @@ const fetchTrack = async (trackId, token, market) => {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });
-  const payload = await response.json();
+  const { payload, message } = await readSpotifyPayload(response);
   if (!response.ok) {
-    throw new Error(payload?.error?.message || 'No se pudo consultar la cancion en Spotify.');
+    if (response.status === 429) {
+      const retryAfter = String(response.headers.get('retry-after') ?? '').trim();
+      throw new Error(
+        `Spotify limito temporalmente la solicitud.${retryAfter ? ` Reintenta en ${retryAfter}s.` : ''}`,
+      );
+    }
+    throw new Error(message || 'No se pudo consultar la cancion en Spotify.');
   }
   return payload;
 };

@@ -6,8 +6,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons';
 import { faCirclePause } from '@fortawesome/free-solid-svg-icons';
-import { defaultAlbums } from '../lib/default-albums';
-import { defaultReleases } from '../lib/default-releases';
 
 const getReleaseTimestamp = (release) => {
   const raw = String(release?.releaseDate ?? '').trim();
@@ -19,8 +17,6 @@ const getReleaseTimestamp = (release) => {
 
 const sortReleasesByDateDesc = (list) =>
   [...list].sort((a, b) => getReleaseTimestamp(b) - getReleaseTimestamp(a));
-
-const latestRelease = sortReleasesByDateDesc(defaultReleases)[0] ?? defaultReleases[0];
 
 const DARK_BASE = [16, 18, 21];
 
@@ -137,11 +133,11 @@ const formatReleaseDate = (value) => {
 
 export default function Home() {
   const audioPlayer = useRef(null);
-  const [albums, setAlbums] = useState(defaultAlbums);
-  const [releases, setReleases] = useState(defaultReleases);
+  const [albums, setAlbums] = useState([]);
+  const [releases, setReleases] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewByRelease, setPreviewByRelease] = useState({});
-  const [activeReleaseId, setActiveReleaseId] = useState(latestRelease.id);
+  const [activeReleaseId, setActiveReleaseId] = useState('');
   const [ambientPalette, setAmbientPalette] = useState({
     a: [50, 56, 66],
     b: [64, 54, 48],
@@ -199,7 +195,7 @@ export default function Home() {
           });
         }
       } catch {
-        // Keep local fallback if API is unavailable.
+        // Keep empty state if API is unavailable.
       } finally {
         if (!cancelled) setIsInitialDataReady(true);
       }
@@ -331,7 +327,23 @@ export default function Home() {
   };
 
   if (!activeRelease) {
-    return <main className={styles.main}>Cargando lanzamientos...</main>;
+    return (
+      <main className={styles.main}>
+        <section className={styles.emptyStateCard}>
+          <h1>{isInitialDataReady ? 'Sin lanzamientos disponibles' : 'Cargando lanzamientos...'}</h1>
+          <p>
+            {isInitialDataReady
+              ? 'Este artista aun no tiene lanzamientos disponibles. Vuelve pronto.'
+              : 'Estamos preparando la discografia del artista.'}
+          </p>
+        </section>
+        <footer className={styles.footer}>
+          <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
+            created by Yoots Music®
+          </a>
+        </footer>
+      </main>
+    );
   }
 
   return (

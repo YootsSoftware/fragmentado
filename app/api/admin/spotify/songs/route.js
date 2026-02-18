@@ -12,6 +12,22 @@ const ensureAuth = (request) => {
   return username;
 };
 
+const readSpotifyPayload = async (response) => {
+  const raw = await response.text();
+  let payload = null;
+  if (raw) {
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      payload = null;
+    }
+  }
+  const message =
+    String(payload?.error_description ?? payload?.error?.message ?? payload?.error ?? '').trim() ||
+    raw.trim();
+  return { payload, message };
+};
+
 const getSpotifyAccessToken = async (clientId, clientSecret) => {
   const encoded = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   const response = await fetch(SPOTIFY_TOKEN_URL, {
@@ -24,9 +40,15 @@ const getSpotifyAccessToken = async (clientId, clientSecret) => {
     cache: 'no-store',
   });
 
-  const payload = await response.json();
+  const { payload, message } = await readSpotifyPayload(response);
   if (!response.ok || !payload?.access_token) {
-    throw new Error(payload?.error_description || payload?.error || 'No se pudo autenticar con Spotify.');
+    if (response.status === 429) {
+      const retryAfter = String(response.headers.get('retry-after') ?? '').trim();
+      throw new Error(
+        `Spotify limito temporalmente la solicitud.${retryAfter ? ` Reintenta en ${retryAfter}s.` : ''}`,
+      );
+    }
+    throw new Error(message || 'No se pudo autenticar con Spotify.');
   }
   return payload.access_token;
 };
@@ -54,7 +76,8 @@ const fetchArtistAlbumsByMarket = async (artistId, market, token) => {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
-      payload = await response.json();
+      const parsed = await readSpotifyPayload(response);
+      payload = parsed.payload;
 
       if (response.ok) {
         activeLimit = limit;
@@ -62,7 +85,14 @@ const fetchArtistAlbumsByMarket = async (artistId, market, token) => {
         break;
       }
 
-      const message = String(payload?.error?.message ?? '');
+      if (response.status === 429) {
+        const retryAfter = String(response.headers.get('retry-after') ?? '').trim();
+        throw new Error(
+          `Spotify limito temporalmente la solicitud.${retryAfter ? ` Reintenta en ${retryAfter}s.` : ''}`,
+        );
+      }
+
+      const message = String(parsed.message ?? '');
       if (!message.toLowerCase().includes('invalid limit')) {
         throw new Error(message || 'No se pudieron obtener los discos del artista.');
       }
@@ -120,7 +150,8 @@ const fetchAlbumTracks = async (albumId, token) => {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
-      payload = await response.json();
+      const parsed = await readSpotifyPayload(response);
+      payload = parsed.payload;
 
       if (response.ok) {
         activeLimit = limit;
@@ -128,7 +159,14 @@ const fetchAlbumTracks = async (albumId, token) => {
         break;
       }
 
-      const message = String(payload?.error?.message ?? '');
+      if (response.status === 429) {
+        const retryAfter = String(response.headers.get('retry-after') ?? '').trim();
+        throw new Error(
+          `Spotify limito temporalmente la solicitud.${retryAfter ? ` Reintenta en ${retryAfter}s.` : ''}`,
+        );
+      }
+
+      const message = String(parsed.message ?? '');
       if (!message.toLowerCase().includes('invalid limit')) {
         throw new Error(message || 'No se pudieron obtener canciones del album.');
       }

@@ -8,6 +8,25 @@ const normalizePlatform = (platform) => ({
   link: String(platform?.link ?? '').trim(),
 });
 
+const slugify = (value) =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
+const normalizeDateComparable = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toISOString().slice(0, 10);
+};
+
 const normalizeRelease = (release) => ({
   id: String(release?.id ?? '')
     .trim()
@@ -22,9 +41,15 @@ const normalizeRelease = (release) => ({
   cover: String(release?.cover ?? '').trim(),
   previewAudio: String(release?.previewAudio ?? '').trim(),
   youtube: String(release?.youtube ?? '').trim(),
-  sourceSpotifyTrackId: String(release?.sourceSpotifyTrackId ?? '').trim(),
-  sourceSpotifyAlbumId: String(release?.sourceSpotifyAlbumId ?? '').trim(),
-  sourceSpotifyAlbumName: String(release?.sourceSpotifyAlbumName ?? '').trim(),
+  ...(String(release?.sourceSpotifyTrackId ?? '').trim()
+    ? { sourceSpotifyTrackId: String(release?.sourceSpotifyTrackId ?? '').trim() }
+    : {}),
+  ...(String(release?.sourceSpotifyAlbumId ?? '').trim()
+    ? { sourceSpotifyAlbumId: String(release?.sourceSpotifyAlbumId ?? '').trim() }
+    : {}),
+  ...(String(release?.sourceSpotifyAlbumName ?? '').trim()
+    ? { sourceSpotifyAlbumName: String(release?.sourceSpotifyAlbumName ?? '').trim() }
+    : {}),
   platforms: Array.isArray(release?.platforms)
     ? release.platforms.map(normalizePlatform).filter((p) => p.title || p.link)
     : [],
@@ -66,6 +91,22 @@ export async function POST(request) {
     releases.some((release) => release.sourceSpotifyTrackId === newRelease.sourceSpotifyTrackId)
   ) {
     return NextResponse.json({ error: 'Esta cancion de Spotify ya fue importada.' }, { status: 409 });
+  }
+  const hasEquivalentRelease = releases.some((release) => {
+    const sameAlbumId = String(release.albumId ?? '') === String(newRelease.albumId ?? '');
+    if (!sameAlbumId) return false;
+    const sameTitle = slugify(release.title) === slugify(newRelease.title);
+    if (!sameTitle) return false;
+    const existingDate = normalizeDateComparable(release.releaseDate);
+    const incomingDate = normalizeDateComparable(newRelease.releaseDate);
+    if (incomingDate) return existingDate === incomingDate;
+    return true;
+  });
+  if (hasEquivalentRelease) {
+    return NextResponse.json(
+      { error: 'Ya existe un lanzamiento similar (titulo, fecha y disco).' },
+      { status: 409 },
+    );
   }
 
   const nextReleases = [...releases, newRelease];
