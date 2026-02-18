@@ -131,6 +131,29 @@ const formatReleaseDate = (value) => {
   return value;
 };
 
+const SOCIAL_ICON_MAP = {
+  facebook: (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M13.5 21v-8.1h2.8l.4-3.2h-3.2V7.6c0-.9.3-1.6 1.7-1.6h1.8V3.1c-.3 0-1.4-.1-2.7-.1-2.7 0-4.5 1.6-4.5 4.6v2.1H7v3.2h2.8V21h3.7z" />
+    </svg>
+  ),
+  instagram: (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7A3 3 0 1 1 12 9a3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM12 2.8c2.9 0 3.2 0 4.4.1 1.1.1 1.8.2 2.2.4.5.2.9.4 1.3.8s.6.8.8 1.3c.2.4.3 1.1.4 2.2.1 1.2.1 1.5.1 4.4s0 3.2-.1 4.4c-.1 1.1-.2 1.8-.4 2.2a3.6 3.6 0 0 1-2.1 2.1c-.4.2-1.1.3-2.2.4-1.2.1-1.5.1-4.4.1s-3.2 0-4.4-.1c-1.1-.1-1.8-.2-2.2-.4a3.6 3.6 0 0 1-2.1-2.1c-.2-.4-.3-1.1-.4-2.2-.1-1.2-.1-1.5-.1-4.4s0-3.2.1-4.4c.1-1.1.2-1.8.4-2.2.2-.5.4-.9.8-1.3s.8-.6 1.3-.8c.4-.2 1.1-.3 2.2-.4 1.2-.1 1.5-.1 4.4-.1zm0-1.8c-2.9 0-3.3 0-4.5.1-1.2.1-2 .2-2.7.5a5.3 5.3 0 0 0-1.9 1.2A5.3 5.3 0 0 0 1.6 4.7c-.3.7-.4 1.5-.5 2.7C1 8.7 1 9.1 1 12s0 3.3.1 4.5c.1 1.2.2 2 .5 2.7.3.7.7 1.4 1.2 1.9s1.2.9 1.9 1.2c.7.3 1.5.4 2.7.5 1.2.1 1.6.1 4.5.1s3.3 0 4.5-.1c1.2-.1 2-.2 2.7-.5.7-.3 1.4-.7 1.9-1.2s.9-1.2 1.2-1.9c.3-.7.4-1.5.5-2.7.1-1.2.1-1.6.1-4.5s0-3.3-.1-4.5c-.1-1.2-.2-2-.5-2.7a5.3 5.3 0 0 0-1.2-1.9 5.3 5.3 0 0 0-1.9-1.2c-.7-.3-1.5-.4-2.7-.5C15.3 1 14.9 1 12 1z" />
+    </svg>
+  ),
+  youtube: (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.7 31.7 0 0 0 0 12a31.7 31.7 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.7 31.7 0 0 0 24 12a31.7 31.7 0 0 0-.5-5.8zM9.7 15.6V8.4L16 12l-6.3 3.6z" />
+    </svg>
+  ),
+  tiktok: (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M17.8 5.1a4.9 4.9 0 0 0 2.9 1v3a8 8 0 0 1-2.9-.6v6.4a6 6 0 1 1-5.2-6v3.1a3 3 0 1 0 2.1 2.9V1.9h3.1v3.2z" />
+    </svg>
+  ),
+};
+
 export default function Home() {
   const audioPlayer = useRef(null);
   const [albums, setAlbums] = useState([]);
@@ -146,6 +169,12 @@ export default function Home() {
   const [isHeroLoading, setIsHeroLoading] = useState(true);
   const [isInitialDataReady, setIsInitialDataReady] = useState(false);
   const [isInitialCoverReady, setIsInitialCoverReady] = useState(false);
+  const [socialLinks, setSocialLinks] = useState({
+    facebook: '',
+    instagram: '',
+    youtube: '',
+    tiktok: '',
+  });
 
   const sortedReleases = useMemo(() => sortReleasesByDateDesc(releases), [releases]);
   const activeRelease = useMemo(() => {
@@ -174,6 +203,11 @@ export default function Home() {
     if (!list.length) return null;
     return [...list].sort((a, b) => String(a.releaseDate).localeCompare(String(b.releaseDate)))[0];
   }, [releases]);
+  const availableSocialLinks = useMemo(
+    () =>
+      Object.entries(socialLinks).filter(([, url]) => Boolean(String(url ?? '').trim())),
+    [socialLinks],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -183,10 +217,19 @@ export default function Home() {
         const response = await fetch('/api/releases', { cache: 'no-store' });
         if (!response.ok) return;
         const data = await response.json();
-        if (!cancelled && Array.isArray(data?.releases) && data.releases.length) {
-          if (Array.isArray(data?.albums) && data.albums.length) {
-            setAlbums(data.albums);
-          }
+        if (cancelled) return;
+
+        setSocialLinks({
+          facebook: String(data?.settings?.socials?.facebook ?? ''),
+          instagram: String(data?.settings?.socials?.instagram ?? ''),
+          youtube: String(data?.settings?.socials?.youtube ?? ''),
+          tiktok: String(data?.settings?.socials?.tiktok ?? ''),
+        });
+
+        if (Array.isArray(data?.albums) && data.albums.length) {
+          setAlbums(data.albums);
+        }
+        if (Array.isArray(data?.releases) && data.releases.length) {
           setReleases(data.releases);
           setActiveReleaseId((currentId) => {
             if (data.releases.some((release) => release.id === currentId)) return currentId;
@@ -421,6 +464,23 @@ export default function Home() {
             <p className={styles.releaseDate}>{formatReleaseDate(activeRelease.releaseDate)}</p>
           </div>
           <p className={styles.kicker}>{activeRelease.badge}</p>
+          {availableSocialLinks.length ? (
+            <div className={styles.socialRow} aria-label="Redes sociales">
+              {availableSocialLinks.map(([network, url]) => (
+                <a
+                  key={network}
+                  href={url}
+                  onClick={() => trackClick(`social:${network}`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialIconLink}
+                  aria-label={network}
+                >
+                  {SOCIAL_ICON_MAP[network]}
+                </a>
+              ))}
+            </div>
+          ) : null}
           {upcomingRelease && upcomingRelease.id !== activeRelease.id ? (
             <button
               type="button"

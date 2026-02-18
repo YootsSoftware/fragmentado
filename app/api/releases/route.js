@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getAlbums, getReleases } from '../../../lib/server/content-store';
+import { getAlbums, getReleases, getSettings } from '../../../lib/server/content-store';
 
 export async function GET() {
-  const [albums, releases] = await Promise.all([getAlbums(), getReleases()]);
-  return NextResponse.json({ albums, releases });
+  const [albums, releases, settings] = await Promise.all([
+    getAlbums(),
+    getReleases(),
+    getSettings(),
+  ]);
+  return NextResponse.json({ albums, releases, settings });
 }

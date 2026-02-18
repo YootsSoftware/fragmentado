@@ -126,7 +126,77 @@ export default function ConfigSection({
                   onChange={(event) =>
                     setSettingsDraft((prev) => ({ ...prev, artistName: event.target.value }))
                   }
-                  required
+                />
+              </label>
+              <div className={styles.configFieldSpanTwo}>
+                <p className={styles.inlineNote}>Redes sociales del grupo (visibles en el Hero).</p>
+              </div>
+              <label>
+                Facebook
+                <input
+                  type="url"
+                  placeholder="https://facebook.com/..."
+                  value={settingsDraft.socials?.facebook ?? ''}
+                  onChange={(event) =>
+                    setSettingsDraft((prev) => ({
+                      ...prev,
+                      socials: {
+                        ...(prev.socials ?? {}),
+                        facebook: event.target.value,
+                      },
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Instagram
+                <input
+                  type="url"
+                  placeholder="https://instagram.com/..."
+                  value={settingsDraft.socials?.instagram ?? ''}
+                  onChange={(event) =>
+                    setSettingsDraft((prev) => ({
+                      ...prev,
+                      socials: {
+                        ...(prev.socials ?? {}),
+                        instagram: event.target.value,
+                      },
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                YouTube
+                <input
+                  type="url"
+                  placeholder="https://youtube.com/..."
+                  value={settingsDraft.socials?.youtube ?? ''}
+                  onChange={(event) =>
+                    setSettingsDraft((prev) => ({
+                      ...prev,
+                      socials: {
+                        ...(prev.socials ?? {}),
+                        youtube: event.target.value,
+                      },
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                TikTok
+                <input
+                  type="url"
+                  placeholder="https://tiktok.com/@..."
+                  value={settingsDraft.socials?.tiktok ?? ''}
+                  onChange={(event) =>
+                    setSettingsDraft((prev) => ({
+                      ...prev,
+                      socials: {
+                        ...(prev.socials ?? {}),
+                        tiktok: event.target.value,
+                      },
+                    }))
+                  }
                 />
               </label>
               <div className={styles.configFieldSpanTwo}>

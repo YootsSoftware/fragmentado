@@ -29,7 +29,7 @@ export default function AdminNavbar({
   return (
     <header className={styles.navbar}>
       <div className={styles.navLead}>
-        <div className={styles.navBrand}>{globalArtistName || 'FRAGMENTADO'}</div>
+        <div className={styles.navBrand}>{globalArtistName || 'sin artista'}</div>
         <div className={styles.navSearchWrap} ref={searchRef}>
           <label className={styles.navSearch} aria-label="Buscar">
             <FontAwesomeIcon icon={faMagnifyingGlass} />

@@ -57,6 +57,13 @@ const PLATFORM_PRESETS = [
   },
 ];
 
+const EMPTY_SOCIALS = {
+  facebook: '',
+  instagram: '',
+  youtube: '',
+  tiktok: '',
+};
+
 const normalizeName = (value) =>
   String(value ?? '')
     .toLowerCase()
@@ -248,7 +255,8 @@ export default function AdminPage() {
   const [stats, setStats] = useState({});
   const [activeSection, setActiveSection] = useState('dashboard');
   const [settingsDraft, setSettingsDraft] = useState({
-    artistName: 'FRAGMENTADO',
+    artistName: '',
+    socials: { ...EMPTY_SOCIALS },
   });
   const [spotifyEnv, setSpotifyEnv] = useState({
     configured: false,
@@ -311,7 +319,7 @@ export default function AdminPage() {
     return ensureUniqueId(baseId, existingIds);
   }, [draft.id, draft.title, isNew, releases]);
   const globalArtistName = useMemo(
-    () => String(settingsDraft.artistName ?? '').trim() || 'FRAGMENTADO',
+    () => String(settingsDraft.artistName ?? '').trim(),
     [settingsDraft.artistName],
   );
   const selectedSpotifySongs = useMemo(
@@ -474,7 +482,13 @@ export default function AdminPage() {
     const data = await response.json();
     const settings = data.settings ?? {};
     setSettingsDraft({
-      artistName: String(settings.artistName ?? 'FRAGMENTADO'),
+      artistName: String(settings.artistName ?? ''),
+      socials: {
+        facebook: String(settings.socials?.facebook ?? ''),
+        instagram: String(settings.socials?.instagram ?? ''),
+        youtube: String(settings.socials?.youtube ?? ''),
+        tiktok: String(settings.socials?.tiktok ?? ''),
+      },
     });
     setSpotifyEnv({
       configured: Boolean(data.spotifyEnv?.configured),
@@ -979,6 +993,12 @@ export default function AdminPage() {
     const payload = {
       settings: {
         artistName: globalArtistName,
+        socials: {
+          facebook: String(settingsDraft.socials?.facebook ?? '').trim(),
+          instagram: String(settingsDraft.socials?.instagram ?? '').trim(),
+          youtube: String(settingsDraft.socials?.youtube ?? '').trim(),
+          tiktok: String(settingsDraft.socials?.tiktok ?? '').trim(),
+        },
       },
     };
 
@@ -994,7 +1014,15 @@ export default function AdminPage() {
     }
 
     const settings = data.settings ?? payload.settings;
-    setSettingsDraft(settings);
+    setSettingsDraft({
+      artistName: String(settings.artistName ?? globalArtistName),
+      socials: {
+        facebook: String(settings.socials?.facebook ?? ''),
+        instagram: String(settings.socials?.instagram ?? ''),
+        youtube: String(settings.socials?.youtube ?? ''),
+        tiktok: String(settings.socials?.tiktok ?? ''),
+      },
+    });
     setDraft((prev) => ({
       ...prev,
       artist: String(settings.artistName ?? globalArtistName),
@@ -1572,8 +1600,16 @@ export default function AdminPage() {
 
   if (session.loading) {
     return (
-      <main className={styles.shell}>
-        Cargando...
+      <main className={`${styles.shell} ${styles.shellAuth}`}>
+        <div className={styles.authViewport}>
+          <section className={styles.authLoadingCard} role="status" aria-live="polite">
+            <span className={styles.authLoadingSpinner} />
+            <div>
+              <strong>Iniciando fg-admin</strong>
+              <p>Validando sesion y cargando configuracion...</p>
+            </div>
+          </section>
+        </div>
         {adminFooter}
       </main>
     );
@@ -1581,18 +1617,20 @@ export default function AdminPage() {
 
   if (!session.bootstrapped) {
     return (
-      <main className={styles.shell}>
-        <AuthCard
-          mode="bootstrap"
-          credentials={credentials}
-          authSubmitting={authSubmitting}
-          authError={authError}
-          onSubmit={handleCreateFirstAdmin}
-          onKeyDown={handleAuthFormKeyDown}
-          onChangeCredentials={(field, value) =>
-            setCredentials((prev) => ({ ...prev, [field]: value }))
-          }
-        />
+      <main className={`${styles.shell} ${styles.shellAuth}`}>
+        <div className={styles.authViewport}>
+          <AuthCard
+            mode="bootstrap"
+            credentials={credentials}
+            authSubmitting={authSubmitting}
+            authError={authError}
+            onSubmit={handleCreateFirstAdmin}
+            onKeyDown={handleAuthFormKeyDown}
+            onChangeCredentials={(field, value) =>
+              setCredentials((prev) => ({ ...prev, [field]: value }))
+            }
+          />
+        </div>
         {adminFooter}
       </main>
     );
@@ -1600,18 +1638,20 @@ export default function AdminPage() {
 
   if (!session.authenticated) {
     return (
-      <main className={styles.shell}>
-        <AuthCard
-          mode="login"
-          credentials={credentials}
-          authSubmitting={authSubmitting}
-          authError={authError}
-          onSubmit={handleLogin}
-          onKeyDown={handleAuthFormKeyDown}
-          onChangeCredentials={(field, value) =>
-            setCredentials((prev) => ({ ...prev, [field]: value }))
-          }
-        />
+      <main className={`${styles.shell} ${styles.shellAuth}`}>
+        <div className={styles.authViewport}>
+          <AuthCard
+            mode="login"
+            credentials={credentials}
+            authSubmitting={authSubmitting}
+            authError={authError}
+            onSubmit={handleLogin}
+            onKeyDown={handleAuthFormKeyDown}
+            onChangeCredentials={(field, value) =>
+              setCredentials((prev) => ({ ...prev, [field]: value }))
+            }
+          />
+        </div>
         {adminFooter}
       </main>
     );

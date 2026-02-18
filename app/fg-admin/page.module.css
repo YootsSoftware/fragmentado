@@ -16,6 +16,22 @@
   line-height: 1.4;
 }
 
+.shellAuth {
+  padding: 0 1rem 0.85rem;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.authViewport {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.shellAuth .adminFooter {
+  margin-top: 0.35rem;
+}
+
 .navbar {
   width: min(100%, 1120px);
   margin: 0 auto 0.75rem;
@@ -237,6 +253,102 @@
   padding: 1.3rem;
 }
 
+.authCard {
+  max-width: 460px;
+  padding: 1.45rem 1.35rem;
+  background: linear-gradient(180deg, #171f2a, #141a23);
+  border-color: #314056;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(151, 174, 204, 0.08);
+}
+
+.authEyebrow {
+  display: inline-flex;
+  padding: 0.2rem 0.52rem;
+  border: 1px solid #3e516a;
+  border-radius: 999px;
+  background: rgba(37, 55, 79, 0.45);
+  color: #aabbd2;
+  font-size: 0.66rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.authSubtitle {
+  color: #afbdcf;
+  margin-bottom: 1.1rem;
+}
+
+.authShellCard {
+  max-width: min(100%, 980px);
+  padding: 0;
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: minmax(280px, 43%) minmax(0, 1fr);
+  overflow: hidden;
+  background: #141b25;
+  border-color: #304057;
+}
+
+.authPromoPane {
+  position: relative;
+  padding: 2rem 1.5rem;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(82, 136, 255, 0.45), transparent 50%),
+    radial-gradient(circle at 80% 85%, rgba(46, 181, 230, 0.35), transparent 48%),
+    linear-gradient(165deg, #203ea3 0%, #1f2d77 42%, #102245 100%);
+  color: #eef4ff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.authPromoGlow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 35% 70%, rgba(132, 213, 255, 0.24), transparent 42%),
+    radial-gradient(circle at 78% 18%, rgba(185, 157, 255, 0.22), transparent 40%);
+  pointer-events: none;
+}
+
+.authPromoKicker,
+.authPromoTitle,
+.authPromoText {
+  position: relative;
+  z-index: 1;
+}
+
+.authPromoKicker {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(231, 240, 255, 0.86);
+}
+
+.authPromoTitle {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.4vw, 1.95rem);
+  line-height: 1.1;
+  font-weight: 650;
+  max-width: 22ch;
+}
+
+.authPromoText {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(230, 240, 255, 0.9);
+  max-width: 34ch;
+}
+
+.authFormPane {
+  padding: 1.9rem 1.6rem 1.65rem;
+}
+
 .card h1 {
   margin: 0 0 0.4rem;
   font-size: 1.25rem;
@@ -254,12 +366,121 @@
   gap: 0.85rem;
 }
 
+.authForm {
+  gap: 0.95rem;
+}
+
 .form label {
   display: grid;
   gap: 0.4rem;
   font-size: 0.8rem;
   letter-spacing: 0.03em;
   color: #c1cad7;
+}
+
+.authField {
+  gap: 0.44rem;
+  color: #d2dbe7;
+}
+
+.authInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.7rem;
+  border: 1px solid #37475f;
+  border-radius: 11px;
+  background: #0f1621;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.authInputWrap:focus-within {
+  border-color: #6f8fb3;
+  box-shadow: 0 0 0 3px rgba(111, 143, 179, 0.22);
+  background: #101a28;
+}
+
+.authInputWrap svg {
+  color: #7f94af;
+  font-size: 0.82rem;
+  flex: 0 0 auto;
+}
+
+.authInput {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0.66rem 0 !important;
+}
+
+.authSubmit {
+  margin-top: 0.2rem;
+  min-height: 42px;
+  border-radius: 11px !important;
+  border-color: #4f6990 !important;
+  background: linear-gradient(180deg, #314d72, #263f5f) !important;
+}
+
+.authSubmit:hover {
+  background: linear-gradient(180deg, #385982, #2b476b) !important;
+}
+
+.authLoadingCard {
+  width: min(100%, 460px);
+  margin: 12vh auto 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid #33455d;
+  background: linear-gradient(180deg, #172130, #131d2b);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.34);
+}
+
+.authLoadingCard strong {
+  display: block;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.authLoadingCard p {
+  margin: 0.15rem 0 0;
+  color: #a6b6c9;
+  font-size: 0.8rem;
+}
+
+.authLoadingSpinner {
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  border: 2px solid #7fa1c6;
+  border-top-color: transparent;
+  animation: authSpinner 0.85s linear infinite;
+}
+
+@keyframes authSpinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 840px) {
+  .authShellCard {
+    grid-template-columns: 1fr;
+  }
+
+  .authPromoPane {
+    min-height: 190px;
+    padding: 1.25rem 1.2rem;
+  }
+
+  .authFormPane {
+    padding: 1.25rem 1.15rem 1.2rem;
+  }
 }
 
 .form input,

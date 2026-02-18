@@ -12,6 +12,12 @@ const ensureAuth = (request) => {
 const normalizePayload = (payload) => {
   return {
     artistName: String(payload?.artistName ?? '').trim(),
+    socials: {
+      facebook: String(payload?.socials?.facebook ?? '').trim(),
+      instagram: String(payload?.socials?.instagram ?? '').trim(),
+      youtube: String(payload?.socials?.youtube ?? '').trim(),
+      tiktok: String(payload?.socials?.tiktok ?? '').trim(),
+    },
   };
 };
 
@@ -41,9 +47,6 @@ export async function PUT(request) {
 
   const body = await request.json();
   const payload = normalizePayload(body?.settings);
-  if (!payload.artistName) {
-    return NextResponse.json({ error: 'El nombre artistico es obligatorio.' }, { status: 400 });
-  }
 
   const settings = await setSettings(payload);
   return NextResponse.json({ settings });
