@@ -508,7 +508,7 @@ export default function Home() {
 
       <footer className={styles.footer}>
         <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
-          created by www.yootsmusic.com
+          created by Yoots Music®
         </a>
       </footer>
     </div>

@@ -1,6 +1,4 @@
 'use client';
-
-import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArcElement,
@@ -11,17 +9,17 @@ import {
   LinearScale,
   Tooltip,
 } from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faGear,
-  faKey,
-  faMagnifyingGlass,
-  faPenToSquare,
-  faRightFromBracket,
-  faUserShield,
-} from '@fortawesome/free-solid-svg-icons';
 import styles from './page.module.css';
+import AuthCard from './components/AuthCard';
+import AdminNavbar from './components/AdminNavbar';
+import DashboardSection from './components/DashboardSection';
+import StatsSection from './components/StatsSection';
+import ConfigSection from './components/ConfigSection';
+import AdminFooter from './components/AdminFooter';
+import DiscographyEditorSection from './components/DiscographyEditorSection';
+import DiscographySidebar from './components/DiscographySidebar';
+import AlbumModal from './components/AlbumModal';
+import FullscreenLoader from './components/FullscreenLoader';
 
 const emptyRelease = {
   id: '',
@@ -1546,65 +1544,32 @@ export default function AdminPage() {
       ? 'Cargando canciones de Spotify...'
       : '';
   const isFullscreenLoading = Boolean(fullscreenLoadingMessage);
+  const adminFooter = <AdminFooter />;
 
   if (session.loading) {
-    return <main className={styles.shell}>Cargando...</main>;
+    return (
+      <main className={styles.shell}>
+        Cargando...
+        {adminFooter}
+      </main>
+    );
   }
 
   if (!session.bootstrapped) {
     return (
       <main className={styles.shell}>
-        <section className={styles.card}>
-          <h1>fg-admin</h1>
-          <p>Crea tu cuenta inicial de administrador.</p>
-          <form
-            className={styles.form}
-            onSubmit={handleCreateFirstAdmin}
-            onKeyDown={handleAuthFormKeyDown}
-          >
-            <label>
-              Usuario
-              <input
-                value={credentials.username}
-                onChange={(event) =>
-                  setCredentials((prev) => ({
-                    ...prev,
-                    username: event.target.value,
-                  }))
-                }
-                required
-                minLength={4}
-                disabled={authSubmitting}
-              />
-            </label>
-            <label>
-              Contraseña
-              <input
-                type="password"
-                value={credentials.password}
-                onChange={(event) =>
-                  setCredentials((prev) => ({
-                    ...prev,
-                    password: event.target.value,
-                  }))
-                }
-                required
-                minLength={8}
-                disabled={authSubmitting}
-              />
-            </label>
-            {authError ? <p className={styles.error}>{authError}</p> : null}
-            {authSubmitting ? (
-              <div className={styles.loaderRow} role="status" aria-live="polite">
-                <span className={styles.loaderDot} />
-                <span>Creando cuenta...</span>
-              </div>
-            ) : null}
-            <button type="submit" disabled={authSubmitting}>
-              {authSubmitting ? 'Procesando...' : 'Crear cuenta'}
-            </button>
-          </form>
-        </section>
+        <AuthCard
+          mode="bootstrap"
+          credentials={credentials}
+          authSubmitting={authSubmitting}
+          authError={authError}
+          onSubmit={handleCreateFirstAdmin}
+          onKeyDown={handleAuthFormKeyDown}
+          onChangeCredentials={(field, value) =>
+            setCredentials((prev) => ({ ...prev, [field]: value }))
+          }
+        />
+        {adminFooter}
       </main>
     );
   }
@@ -1612,162 +1577,41 @@ export default function AdminPage() {
   if (!session.authenticated) {
     return (
       <main className={styles.shell}>
-        <section className={styles.card}>
-          <h1>fg-admin</h1>
-          <p>Inicia sesion para administrar contenido.</p>
-          <form
-            className={styles.form}
-            onSubmit={handleLogin}
-            onKeyDown={handleAuthFormKeyDown}
-          >
-            <label>
-              Usuario
-              <input
-                value={credentials.username}
-                onChange={(event) =>
-                  setCredentials((prev) => ({
-                    ...prev,
-                    username: event.target.value,
-                  }))
-                }
-                required
-                disabled={authSubmitting}
-              />
-            </label>
-            <label>
-              Contraseña
-              <input
-                type="password"
-                value={credentials.password}
-                onChange={(event) =>
-                  setCredentials((prev) => ({
-                    ...prev,
-                    password: event.target.value,
-                  }))
-                }
-                required
-                disabled={authSubmitting}
-              />
-            </label>
-            {authError ? <p className={styles.error}>{authError}</p> : null}
-            {authSubmitting ? (
-              <div className={styles.loaderRow} role="status" aria-live="polite">
-                <span className={styles.loaderDot} />
-                <span>Iniciando sesion...</span>
-              </div>
-            ) : null}
-            <button type="submit" disabled={authSubmitting}>
-              {authSubmitting ? 'Validando...' : 'Entrar'}
-            </button>
-          </form>
-        </section>
+        <AuthCard
+          mode="login"
+          credentials={credentials}
+          authSubmitting={authSubmitting}
+          authError={authError}
+          onSubmit={handleLogin}
+          onKeyDown={handleAuthFormKeyDown}
+          onChangeCredentials={(field, value) =>
+            setCredentials((prev) => ({ ...prev, [field]: value }))
+          }
+        />
+        {adminFooter}
       </main>
     );
   }
 
   return (
     <main className={styles.shell}>
-      <header className={styles.navbar}>
-        <div className={styles.navLead}>
-          <div className={styles.navBrand}>
-            {globalArtistName || 'FRAGMENTADO'}
-          </div>
-          <div className={styles.navSearchWrap} ref={searchRef}>
-            <label className={styles.navSearch} aria-label="Buscar">
-              <FontAwesomeIcon icon={faMagnifyingGlass} />
-              <input
-                type="search"
-                placeholder="Buscar cancion o disco"
-                value={searchQuery}
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
-                  setIsSearchOpen(true);
-                }}
-                onFocus={() => setIsSearchOpen(true)}
-              />
-            </label>
-            {isSearchOpen && searchQuery.trim() ? (
-              <ul className={styles.navSearchResults}>
-                {searchResults.length ? (
-                  searchResults.map((result) => (
-                    <li key={`${result.type}-${result.id}`}>
-                      <button
-                        type="button"
-                        className={styles.navSearchResult}
-                        onClick={() => handleSearchSelect(result)}
-                      >
-                        <span className={styles.navSearchResultTitle}>
-                          {result.title}
-                        </span>
-                        <span className={styles.navSearchResultMeta}>
-                          {result.type === 'song' ? 'Cancion' : 'Disco'} • {result.subtitle}
-                        </span>
-                      </button>
-                    </li>
-                  ))
-                ) : (
-                  <li className={styles.navSearchEmpty}>Sin resultados</li>
-                )}
-              </ul>
-            ) : null}
-          </div>
-        </div>
-        <nav className={styles.navTabs} aria-label="Secciones del panel">
-          <button
-            type="button"
-            className={
-              activeSection === 'dashboard' ? styles.tabActive : styles.tab
-            }
-            onClick={() => setActiveSection('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
-            type="button"
-            className={
-              activeSection === 'discografia' ? styles.tabActive : styles.tab
-            }
-            onClick={() => setActiveSection('discografia')}
-          >
-            Discografia
-          </button>
-          <button
-            type="button"
-            className={
-              activeSection === 'estadisticas' ? styles.tabActive : styles.tab
-            }
-            onClick={() => setActiveSection('estadisticas')}
-          >
-            Estadisticas
-          </button>
-          <button
-            type="button"
-            className={
-              activeSection === 'configuracion' ? styles.tabActive : styles.tab
-            }
-            onClick={() => setActiveSection('configuracion')}
-          >
-            Configuracion
-          </button>
-        </nav>
-        <div className={styles.navUserArea}>
-          <div className={styles.userPill}>
-            <span className={styles.userAvatar} aria-hidden="true">
-              {(session.username || 'admin').slice(0, 1).toUpperCase()}
-            </span>
-            <span>{session.username || 'admin'}</span>
-          </div>
-          <button
-            type="button"
-            className={styles.navLogout}
-            onClick={handleLogout}
-            aria-label="Cerrar sesion"
-            title="Cerrar sesion"
-          >
-            <FontAwesomeIcon icon={faRightFromBracket} />
-          </button>
-        </div>
-      </header>
+      <AdminNavbar
+        globalArtistName={globalArtistName}
+        searchRef={searchRef}
+        searchQuery={searchQuery}
+        isSearchOpen={isSearchOpen}
+        searchResults={searchResults}
+        activeSection={activeSection}
+        sessionUsername={session.username}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          setIsSearchOpen(true);
+        }}
+        onSearchFocus={() => setIsSearchOpen(true)}
+        onSearchSelect={handleSearchSelect}
+        onSetActiveSection={setActiveSection}
+        onLogout={handleLogout}
+      />
 
       <section
         className={`${styles.panel} ${
@@ -1775,1027 +1619,123 @@ export default function AdminPage() {
         }`}
       >
         {activeSection === 'discografia' ? (
-        <aside className={styles.sidebar}>
-          <div className={styles.sidebarHead}>
-            <h2>Lanzamientos</h2>
-            <div className={styles.sidebarHeadActions}>
-              <button
-                type="button"
-                className={
-                  manualMode ? styles.selectionToggleActive : styles.selectionToggle
-                }
-                onClick={toggleManualMode}
-                aria-label={
-                  manualMode ? 'Ocultar modo manual' : 'Activar modo manual'
-                }
-                title={
-                  manualMode ? 'Ocultar modo manual' : 'Activar modo manual'
-                }
-              >
-                <span className={styles.selectionToggleIcon} aria-hidden="true">
-                  {manualMode ? '✎' : '⌁'}
-                </span>
-              </button>
-              <button
-                type="button"
-                className={
-                  bulkSelectMode
-                    ? styles.selectionToggleActive
-                    : styles.selectionToggle
-                }
-                onClick={() => setBulkSelectMode((prev) => !prev)}
-                aria-label={
-                  bulkSelectMode
-                    ? 'Ocultar seleccion multiple'
-                    : 'Activar seleccion multiple'
-                }
-                title={
-                  bulkSelectMode
-                    ? 'Ocultar seleccion multiple'
-                    : 'Activar seleccion multiple'
-                }
-              >
-                <span className={styles.selectionToggleIcon} aria-hidden="true">
-                  {bulkSelectMode ? '✓' : '☷'}
-                </span>
-              </button>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={styles.newAlbumButton}
-            onClick={handleOpenAlbumModal}
-          >
-            <span className={styles.actionIcon}>+</span>
-            <span>Nuevo disco</span>
-          </button>
-          <div className={styles.tree}>
-            {releasesByAlbum.map(({ album, releases: albumReleases }) => (
-              <section className={styles.treeAlbum} key={album.id}>
-                <div className={styles.treeAlbumHeadRow}>
-                  <button
-                    type="button"
-                    className={styles.treeAlbumHead}
-                    onClick={() => {
-                      setSelectedAlbumId(album.id);
-                      toggleAlbum(album.id);
-                    }}
-                  >
-                    <span className={styles.treeAlbumTitleWrap}>
-                      <span className={styles.treeAlbumGlyph}>◌</span>
-                      <span className={styles.treeAlbumTitle}>{album.title}</span>
-                    </span>
-                    <span className={styles.treeAlbumMeta}>
-                      <span className={styles.treeAlbumCount}>
-                        {albumReleases.length}
-                      </span>
-                      {expandedAlbums[album.id] ? '▾' : '▸'}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.treeAlbumEditIcon}
-                    onClick={() => handleOpenEditAlbumModal(album)}
-                    aria-label={`Editar disco ${album.title}`}
-                    title="Editar disco"
-                  >
-                    <FontAwesomeIcon icon={faPenToSquare} />
-                  </button>
-                </div>
-                {expandedAlbums[album.id] ? (
-                  <div className={styles.treeSongs}>
-                    {bulkSelectMode &&
-                    (bulkDeleteByAlbum[album.id]?.length ?? 0) > 0 ? (
-                      <button
-                        type="button"
-                        className={styles.bulkDeleteButton}
-                        onClick={() => handleBulkDeleteInAlbum(album.id)}
-                      >
-                        <span className={styles.actionIcon}>x</span>
-                        <span>
-                          Borrar seleccionadas (
-                          {bulkDeleteByAlbum[album.id].length})
-                        </span>
-                      </button>
-                    ) : null}
-                    {manualMode ? (
-                      <button
-                        type="button"
-                        className={styles.addSongButton}
-                        onClick={() => handleNewDraftInAlbum(album.id)}
-                      >
-                        <span className={styles.actionIcon}>+</span>
-                        <span>Agregar cancion</span>
-                      </button>
-                    ) : null}
-                    {albumReleases.map((release) =>
-                      bulkSelectMode ? (
-                        <div key={release.id} className={styles.songRow}>
-                          <label className={styles.songCheckbox}>
-                            <input
-                              type="checkbox"
-                              checked={(
-                                bulkDeleteByAlbum[album.id] ?? []
-                              ).includes(release.id)}
-                              onChange={() =>
-                                toggleBulkDeleteSelection(album.id, release.id)
-                              }
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className={
-                              release.id === selectedId
-                                ? styles.itemActive
-                                : styles.item
-                            }
-                            onClick={() => handleSelectRelease(release)}
-                          >
-                            <Image
-                              className={styles.treeSongCover}
-                              src={release.cover || '/pausa-min.jpg'}
-                              alt={`Portada de ${release.title}`}
-                              width={54}
-                              height={54}
-                            />
-                            <span className={styles.treeSongBody}>
-                              <span className={styles.songTitleRow}>
-                                <strong>{release.title}</strong>
-                              </span>
-                              <small>{release.releaseDate}</small>
-                            </span>
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          key={release.id}
-                          type="button"
-                          className={
-                            release.id === selectedId
-                              ? styles.itemActive
-                              : styles.item
-                          }
-                          onClick={() => handleSelectRelease(release)}
-                        >
-                          <Image
-                            className={styles.treeSongCover}
-                            src={release.cover || '/pausa-min.jpg'}
-                            alt={`Portada de ${release.title}`}
-                            width={54}
-                            height={54}
-                          />
-                          <span className={styles.treeSongBody}>
-                            <span className={styles.songTitleRow}>
-                              <strong>{release.title}</strong>
-                            </span>
-                            <small>{release.releaseDate}</small>
-                          </span>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                ) : null}
-              </section>
-            ))}
-          </div>
-        </aside>
+          <DiscographySidebar
+            manualMode={manualMode}
+            toggleManualMode={toggleManualMode}
+            bulkSelectMode={bulkSelectMode}
+            setBulkSelectMode={setBulkSelectMode}
+            handleOpenAlbumModal={handleOpenAlbumModal}
+            releasesByAlbum={releasesByAlbum}
+            setSelectedAlbumId={setSelectedAlbumId}
+            toggleAlbum={toggleAlbum}
+            expandedAlbums={expandedAlbums}
+            handleOpenEditAlbumModal={handleOpenEditAlbumModal}
+            bulkDeleteByAlbum={bulkDeleteByAlbum}
+            handleBulkDeleteInAlbum={handleBulkDeleteInAlbum}
+            handleNewDraftInAlbum={handleNewDraftInAlbum}
+            toggleBulkDeleteSelection={toggleBulkDeleteSelection}
+            selectedId={selectedId}
+            handleSelectRelease={handleSelectRelease}
+          />
         ) : null}
 
         <section className={styles.editor}>
           {activeSection === 'dashboard' ? (
-            <>
-              <h2>Dashboard</h2>
-              <p className={styles.editorHint}>
-                Resumen general de actividad y estado de tu catalogo.
-              </p>
-
-              <section className={styles.dashboardGrid}>
-                <article className={styles.dashboardStatCard}>
-                  <p>Total de discos</p>
-                  <strong>{albums.length}</strong>
-                </article>
-                <article className={styles.dashboardStatCard}>
-                  <p>Total de canciones</p>
-                  <strong>{releases.length}</strong>
-                </article>
-                <article className={styles.dashboardStatCard}>
-                  <p>Clics totales</p>
-                  <strong>{totalGlobalClicks}</strong>
-                </article>
-                <article className={styles.dashboardStatCard}>
-                  <p>Canal mas fuerte</p>
-                  <strong>{topChannel?.channel || 'Sin datos'}</strong>
-                </article>
-              </section>
-
-              <section className={styles.dashboardGrid}>
-                <article
-                  className={`${styles.dashboardCard} ${styles.dashboardWideCard}`}
-                >
-                  <h3>Top 5 lanzamientos por clics</h3>
-                  {releaseStatsSummary.length ? (
-                    <div className={styles.dashboardChartCanvas}>
-                      <Bar
-                        data={dashboardTopReleasesChartData}
-                        options={dashboardBarOptions}
-                      />
-                    </div>
-                  ) : (
-                    <p className={styles.inlineNote}>
-                      Sin datos de clics para graficar.
-                    </p>
-                  )}
-                </article>
-              </section>
-
-              <section className={styles.dashboardGrid}>
-                <article className={styles.dashboardCard}>
-                  <h3>Ultimo lanzamiento</h3>
-                  {latestReleaseItem ? (
-                    <div className={styles.dashboardInfoRows}>
-                      <p>
-                        <strong>{latestReleaseItem.title}</strong>
-                      </p>
-                      <p>{latestReleaseItem.releaseDate}</p>
-                      <p>
-                        Disco:{' '}
-                        {albums.find(
-                          (album) => album.id === latestReleaseItem.albumId,
-                        )?.title || 'Sin disco'}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className={styles.inlineNote}>Aun no hay lanzamientos.</p>
-                  )}
-                </article>
-                <article className={styles.dashboardCard}>
-                  <h3>Proximo lanzamiento</h3>
-                  {nextReleaseItem ? (
-                    <div className={styles.dashboardInfoRows}>
-                      <p>
-                        <strong>{nextReleaseItem.title}</strong>
-                      </p>
-                      <p>{nextReleaseItem.releaseDate}</p>
-                      <p>
-                        Disco:{' '}
-                        {albums.find((album) => album.id === nextReleaseItem.albumId)?.title ||
-                          'Sin disco'}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className={styles.inlineNote}>
-                      No hay lanzamientos programados.
-                    </p>
-                  )}
-                </article>
-              </section>
-
-              <section className={styles.dashboardGrid}>
-                <article className={styles.dashboardCard}>
-                  <h3>Rendimiento top</h3>
-                  {mostClickedRelease ? (
-                    <div className={styles.dashboardInfoRows}>
-                      <p>
-                        <strong>{mostClickedRelease.title}</strong>
-                      </p>
-                      <p>{mostClickedRelease.total} clics acumulados</p>
-                    </div>
-                  ) : (
-                    <p className={styles.inlineNote}>
-                      Aun no hay clics registrados.
-                    </p>
-                  )}
-                </article>
-                <article className={styles.dashboardCard}>
-                  <h3>Acciones rapidas</h3>
-                  <div className={styles.actions}>
-                    <button
-                      type="button"
-                      className={styles.buttonInfo}
-                      onClick={() => setActiveSection('discografia')}
-                    >
-                      Editar discografia
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.buttonInfo}
-                      onClick={() => setActiveSection('configuracion')}
-                    >
-                      Importar desde Spotify
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.buttonNeutral}
-                      onClick={() => setActiveSection('estadisticas')}
-                    >
-                      Ver estadisticas
-                    </button>
-                  </div>
-                </article>
-              </section>
-            </>
+            <DashboardSection
+              albums={albums}
+              releases={releases}
+              totalGlobalClicks={totalGlobalClicks}
+              topChannel={topChannel}
+              releaseStatsSummary={releaseStatsSummary}
+              dashboardTopReleasesChartData={dashboardTopReleasesChartData}
+              dashboardBarOptions={dashboardBarOptions}
+              latestReleaseItem={latestReleaseItem}
+              nextReleaseItem={nextReleaseItem}
+              mostClickedRelease={mostClickedRelease}
+              onSetActiveSection={setActiveSection}
+            />
           ) : activeSection === 'discografia' ? (
-            <>
-              <h2>
-                {isNew
-                  ? 'Nuevo lanzamiento'
-                  : `Editar: ${selectedRelease?.title ?? ''}`}
-              </h2>
-              <p className={styles.editorHint}>
-                Edita los datos del lanzamiento y guarda para reflejar cambios en
-                el sitio.
-              </p>
-              <p className={styles.inlineNote}>
-                El estado se calcula automaticamente segun la fecha de
-                lanzamiento.
-              </p>
-
-              {!showManualEditor ? (
-                <section className={styles.platformsSection}>
-                  <p className={styles.inlineNote}>
-                    Usa <strong>Configuracion</strong> para importar canciones
-                    desde Spotify.
-                  </p>
-                  <div className={styles.actions}>
-                    <button
-                      type="button"
-                      className={styles.buttonInfo}
-                      onClick={() => setActiveSection('configuracion')}
-                    >
-                      Ir a Spotify
-                    </button>
-                    <button type="button" className={styles.buttonNeutral} onClick={toggleManualMode}>
-                      Activar modo manual
-                    </button>
-                  </div>
-                </section>
-              ) : (
-                <form className={styles.form} onSubmit={handleSave}>
-                <section className={styles.coverSection}>
-                  <h3 className={styles.subheading}>Portada</h3>
-                  <div className={styles.coverManager}>
-                    {hasCover ? (
-                      <Image
-                        className={styles.coverHero}
-                        src={draft.cover}
-                        alt="Portada actual"
-                        width={360}
-                        height={360}
-                      />
-                    ) : (
-                      <div className={styles.coverEmpty}>
-                        <span>Sin portada cargada</span>
-                      </div>
-                    )}
-
-                    <label
-                      className={
-                        hasCover
-                          ? styles.coverOverlayButton
-                          : styles.coverAddButton
-                      }
-                    >
-                      {uploadingCover
-                        ? 'Subiendo...'
-                        : hasCover
-                          ? 'Reemplazar portada'
-                          : 'Agregar portada'}
-                      <input
-                        className={styles.hiddenInput}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={handleCoverUpload}
-                      />
-                    </label>
-                  </div>
-                  {draft.cover ? (
-                    <span className={styles.inlineNote}>
-                      Actual: {draft.cover}
-                    </span>
-                  ) : null}
-                </section>
-
-                <div className={styles.grid}>
-                  <label>
-                    Titulo
-                    <input
-                      value={draft.title}
-                      onChange={(event) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          title: event.target.value,
-                        }))
-                      }
-                      required
-                      placeholder="Tuyo Nomas"
-                    />
-                  </label>
-                  <label>
-                    Fecha de lanzamiento
-                    <input
-                      type="date"
-                      value={draft.releaseDate}
-                      onChange={(event) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          releaseDate: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    Link de YouTube
-                    <input
-                      value={draft.youtube}
-                      onChange={(event) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          youtube: event.target.value,
-                        }))
-                      }
-                      placeholder="https://youtu.be/..."
-                    />
-                  </label>
-                </div>
-                <p className={styles.inlineNote}>
-                  Artista global aplicado: <strong>{globalArtistName}</strong>
-                </p>
-
-                <p className={styles.inlineNote}>
-                  Preview de audio: se obtiene automaticamente desde Spotify (si
-                  esta disponible).
-                </p>
-                <div className={styles.previewStatusRow}>
-                  <span
-                    className={
-                      previewFetchStatus === 'error'
-                        ? styles.previewErrorBadge
-                        : hasPreviewAudio
-                          ? styles.previewReadyBadge
-                          : previewFetchStatus === 'loading'
-                            ? styles.previewLoadingBadge
-                            : styles.previewMissingBadge
-                    }
-                  >
-                    {previewFetchStatus === 'error'
-                      ? 'Error preview'
-                      : previewFetchStatus === 'loading'
-                        ? 'Obteniendo...'
-                        : hasPreviewAudio
-                          ? 'Preview detectado'
-                          : 'Sin preview'}
-                  </span>
-                  <span className={styles.inlineNote}>
-                    {previewFetchMessage
-                      ? previewFetchMessage
-                      : hasPreviewAudio
-                      ? 'Guarda para persistir este preview en el lanzamiento.'
-                      : hasSpotifyPlatformLink
-                        ? 'Spotify puede no tener preview para este track.'
-                        : 'Agrega primero el link de Spotify para consultarlo.'}
-                  </span>
-                </div>
-                <div className={styles.actions}>
-                  <button
-                    type="button"
-                    className={styles.buttonInfo}
-                    onClick={handleResolveSpotifyPreview}
-                    disabled={resolvingSpotifyPreview || !hasSpotifyPlatformLink}
-                  >
-                    {resolvingSpotifyPreview
-                      ? 'Obteniendo preview...'
-                      : hasPreviewAudio
-                        ? 'Actualizar preview de Spotify'
-                        : 'Obtener preview de Spotify'}
-                  </button>
-                </div>
-                {draft.previewAudio ? (
-                  <audio
-                    className={styles.audioPreview}
-                    src={draft.previewAudio}
-                    controls
-                    preload="none"
-                  />
-                ) : null}
-
-                <section className={styles.platformsSection}>
-                  <div className={styles.platformsHead}>
-                    <h3>Plataformas</h3>
-                    <span className={styles.inlineNote}>
-                      Fijas: Spotify, Apple Music, Amazon Music y Deezer
-                    </span>
-                  </div>
-
-                  <div className={styles.platformRows}>
-                    {PLATFORM_PRESETS.map((preset) => (
-                      <article className={styles.platformRow} key={preset.id}>
-                        <Image
-                          className={styles.platformPreview}
-                          src={preset.icon}
-                          alt={preset.title}
-                          width={120}
-                          height={34}
-                        />
-                        <label>
-                          Link de {preset.title}
-                          <input
-                            value={getPlatformLink(preset.id)}
-                            onChange={(event) =>
-                              setPlatformLink(preset, event.target.value)
-                            }
-                            placeholder="https://..."
-                          />
-                        </label>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-
-                {saveError ? <p className={styles.error}>{saveError}</p> : null}
-                {message ? <p className={styles.message}>{message}</p> : null}
-
-                <div className={styles.actions}>
-                  <button type="submit" className={styles.saveButton}>
-                    Guardar
-                  </button>
-                  {!isNew ? (
-                    <button
-                      type="button"
-                      className={styles.delete}
-                      onClick={handleDelete}
-                    >
-                      Eliminar lanzamiento
-                    </button>
-                  ) : null}
-                </div>
-                </form>
-              )}
-            </>
+            <DiscographyEditorSection
+              isNew={isNew}
+              selectedRelease={selectedRelease}
+              showManualEditor={showManualEditor}
+              onSetActiveSection={setActiveSection}
+              toggleManualMode={toggleManualMode}
+              handleSave={handleSave}
+              hasCover={hasCover}
+              draft={draft}
+              uploadingCover={uploadingCover}
+              handleCoverUpload={handleCoverUpload}
+              setDraft={setDraft}
+              globalArtistName={globalArtistName}
+              previewFetchStatus={previewFetchStatus}
+              hasPreviewAudio={hasPreviewAudio}
+              previewFetchMessage={previewFetchMessage}
+              hasSpotifyPlatformLink={hasSpotifyPlatformLink}
+              resolvingSpotifyPreview={resolvingSpotifyPreview}
+              handleResolveSpotifyPreview={handleResolveSpotifyPreview}
+              PLATFORM_PRESETS={PLATFORM_PRESETS}
+              getPlatformLink={getPlatformLink}
+              setPlatformLink={setPlatformLink}
+              saveError={saveError}
+              message={message}
+              handleDelete={handleDelete}
+            />
           ) : activeSection === 'estadisticas' ? (
-            <>
-              <h2>Estadisticas</h2>
-              <p className={styles.editorHint}>
-                Vista general de rendimiento de toda la discografia.
-              </p>
-              <section className={styles.platformsSection}>
-                <div className={styles.platformsHead}>
-                  <h3>Resumen general</h3>
-                  <button type="button" className={styles.buttonInfo} onClick={loadStats}>
-                    Actualizar
-                  </button>
-                </div>
-                <div className={styles.statsBox}>
-                  <p>
-                    Clics salientes totales:{' '}
-                    <strong>{totalGlobalClicks}</strong>
-                  </p>
-                  <p>
-                    Lanzamientos monitoreados:{' '}
-                    <strong>{releaseStatsSummary.length}</strong>
-                  </p>
-                  <p>
-                    Canales activos:{' '}
-                    <strong>{globalChannelSummary.length}</strong>
-                  </p>
-                </div>
-              </section>
-              <section className={styles.platformsSection}>
-                <div className={styles.platformsHead}>
-                  <h3>Top lanzamientos (global)</h3>
-                </div>
-                {releaseStatsSummary.length ? (
-                  <>
-                    <div className={styles.chartsGrid}>
-                      <article className={styles.chartCard}>
-                        <h4>Top lanzamientos por clics</h4>
-                        <div className={styles.chartCanvas}>
-                          <Bar
-                            data={globalTopReleasesChartData}
-                            options={barChartOptions}
-                          />
-                        </div>
-                      </article>
-                      {globalChannelSummary.length ? (
-                        <article className={styles.chartCard}>
-                          <h4>Canales con mas salida</h4>
-                          <div className={styles.chartCanvas}>
-                            <Doughnut
-                              data={globalChannelsChartData}
-                              options={doughnutChartOptions}
-                            />
-                          </div>
-                        </article>
-                      ) : null}
-                    </div>
-                    <ul className={styles.statsList}>
-                      {releaseStatsSummary.map((item) => (
-                        <li key={item.id}>
-                          <span>{item.title}</span>
-                          <strong>{item.total}</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : (
-                  <p className={styles.inlineNote}>
-                    Aun no hay clics registrados.
-                  </p>
-                )}
-              </section>
-            </>
+            <StatsSection
+              totalGlobalClicks={totalGlobalClicks}
+              releaseStatsSummary={releaseStatsSummary}
+              globalChannelSummary={globalChannelSummary}
+              globalTopReleasesChartData={globalTopReleasesChartData}
+              barChartOptions={barChartOptions}
+              globalChannelsChartData={globalChannelsChartData}
+              doughnutChartOptions={doughnutChartOptions}
+              onLoadStats={loadStats}
+            />
           ) : (
-            <>
-              <h2>Configuracion</h2>
-              <p className={styles.editorHint}>
-                Administra cuenta, artista global del proyecto y conexion con
-                Spotify API.
-              </p>
-              <div className={styles.configWrap}>
-
-              <section
-                className={`${styles.platformsSection} ${styles.configCard}`}
-              >
-                <div className={styles.configCardHead}>
-                  <span className={styles.configCardIcon} aria-hidden="true">
-                    <FontAwesomeIcon icon={faUserShield} />
-                  </span>
-                  <div className={styles.configCardTitleGroup}>
-                    <h3>Cuenta de administrador</h3>
-                    <p>Credenciales de acceso para fg-admin.</p>
-                  </div>
-                </div>
-                <form
-                  className={`${styles.form} ${styles.configForm}`}
-                  onSubmit={handleUpdateAccount}
-                >
-                  <div className={styles.configGridTwo}>
-                  <label>
-                    Usuario
-                    <input
-                      value={accountDraft.username}
-                      onChange={(event) =>
-                        setAccountDraft((prev) => ({
-                          ...prev,
-                          username: event.target.value,
-                        }))
-                      }
-                      required
-                      minLength={4}
-                    />
-                  </label>
-                  <label>
-                    Contrasena actual
-                    <input
-                      type="password"
-                      value={accountDraft.currentPassword}
-                      onChange={(event) =>
-                        setAccountDraft((prev) => ({
-                          ...prev,
-                          currentPassword: event.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </label>
-                  <label>
-                    Nueva contrasena
-                    <input
-                      type="password"
-                      value={accountDraft.newPassword}
-                      onChange={(event) =>
-                        setAccountDraft((prev) => ({
-                          ...prev,
-                          newPassword: event.target.value,
-                        }))
-                      }
-                      minLength={8}
-                      placeholder="Opcional si no deseas cambiarla"
-                    />
-                  </label>
-                  <label>
-                    Confirmar nueva contrasena
-                    <input
-                      type="password"
-                      value={accountDraft.confirmPassword}
-                      onChange={(event) =>
-                        setAccountDraft((prev) => ({
-                          ...prev,
-                          confirmPassword: event.target.value,
-                        }))
-                      }
-                      minLength={8}
-                    />
-                  </label>
-                  </div>
-                  {accountError ? (
-                    <p className={styles.error}>{accountError}</p>
-                  ) : null}
-                  {accountMessage ? (
-                    <p className={styles.message}>{accountMessage}</p>
-                  ) : null}
-                  <div className={`${styles.actions} ${styles.configActions}`}>
-                    <button type="submit" className={styles.buttonSuccess}>
-                      <FontAwesomeIcon icon={faKey} />
-                      Guardar cuenta
-                    </button>
-                  </div>
-                </form>
-              </section>
-
-              <section
-                className={`${styles.platformsSection} ${styles.configCard}`}
-              >
-                <div className={styles.configCardHead}>
-                  <span className={styles.configCardIcon} aria-hidden="true">
-                    <FontAwesomeIcon icon={faGear} />
-                  </span>
-                  <div className={styles.configCardTitleGroup}>
-                    <h3>Proyecto y Spotify API</h3>
-                    <p>Datos globales para sincronizacion automatica.</p>
-                  </div>
-                </div>
-                <form
-                  className={`${styles.form} ${styles.configForm}`}
-                  onSubmit={handleSaveSettings}
-                >
-                  <div className={styles.configGridTwo}>
-                  <label>
-                    Nombre artistico global
-                    <input
-                      value={settingsDraft.artistName}
-                      onChange={(event) =>
-                        setSettingsDraft((prev) => ({
-                          ...prev,
-                          artistName: event.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </label>
-                  <div className={styles.configFieldSpanTwo}>
-                    <p className={styles.inlineNote}>
-                      Spotify se configura por variables de entorno:
-                      {' '}
-                      <code>SPOTIFY_CLIENT_ID</code>,
-                      {' '}
-                      <code>SPOTIFY_CLIENT_SECRET</code>,
-                      {' '}
-                      <code>SPOTIFY_ARTIST_ID</code>,
-                      {' '}
-                      <code>SPOTIFY_MARKET</code>.
-                    </p>
-                    <p className={styles.inlineNote}>
-                      Estado:
-                      {' '}
-                      {spotifyEnv.configured ? 'configurado' : 'incompleto'}
-                      {' '}
-                      | Artist ID:
-                      {' '}
-                      <strong>{spotifyEnv.artistId || '-'}</strong>
-                      {' '}
-                      | Market:
-                      {' '}
-                      <strong>{spotifyEnv.market || 'MX'}</strong>
-                    </p>
-                  </div>
-                  </div>
-                  {settingsError ? (
-                    <p className={styles.error}>{settingsError}</p>
-                  ) : null}
-                  {settingsMessage ? (
-                    <p className={styles.message}>{settingsMessage}</p>
-                  ) : null}
-                  <div className={`${styles.actions} ${styles.configActions}`}>
-                    <button type="submit" className={styles.buttonSuccess}>Guardar configuracion</button>
-                    <button
-                      type="button"
-                      className={`${styles.buttonInfo} ${styles.spotifySyncButton}`}
-                      onClick={handleFetchSpotifySongs}
-                      disabled={spotifyFetchLoading}
-                    >
-                      <span className={styles.spotifySyncIcon} aria-hidden="true">
-                        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-                          <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.4 17.3a.74.74 0 0 1-1.02.24 10.4 10.4 0 0 0-8.94-1.06.74.74 0 0 1-.47-1.4 11.9 11.9 0 0 1 10.22 1.2c.35.2.47.66.2 1.02zm1.45-3.04a.93.93 0 0 1-1.27.3 13.06 13.06 0 0 0-11.13-1.3.93.93 0 1 1-.6-1.76 14.92 14.92 0 0 1 12.71 1.5c.44.24.6.8.29 1.26zm.13-3.17a1.1 1.1 0 0 1-1.5.36 16.3 16.3 0 0 0-12.95-1.64 1.1 1.1 0 1 1-.68-2.1 18.5 18.5 0 0 1 14.7 1.88c.52.3.69.97.43 1.5z" />
-                        </svg>
-                      </span>
-                      {spotifyFetchLoading
-                        ? 'Consultando...'
-                        : 'Traer canciones de Spotify'}
-                    </button>
-                  </div>
-                </form>
-                {spotifyFetchError ? (
-                  <p className={styles.error}>{spotifyFetchError}</p>
-                ) : null}
-                {spotifyNotice ? (
-                  <p className={styles.message}>{spotifyNotice}</p>
-                ) : null}
-                {spotifyFetchLoading ? (
-                  <div
-                    className={styles.loaderRow}
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <span className={styles.loaderDot} />
-                    <span>Cargando canciones de Spotify...</span>
-                  </div>
-                ) : null}
-                {spotifyBulkLoading ? (
-                  <div
-                    className={styles.loaderRow}
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <span className={styles.loaderDot} />
-                    <span>
-                      Importando canciones a discos...{' '}
-                      {spotifyBulkProgress.current}/{spotifyBulkProgress.total}
-                    </span>
-                  </div>
-                ) : null}
-                {spotifySongs.length ? (
-                  <div className={styles.statsBox}>
-                    <p>
-                      Albums: <strong>{spotifyMeta.totalAlbums}</strong> |
-                      Canciones: <strong>{spotifyMeta.totalTracks}</strong> |
-                      Mercado: <strong>{spotifyMeta.market || '-'}</strong>
-                    </p>
-                    <div className={styles.spotifyBulkBar}>
-                      <label className={styles.spotifyCheckLabel}>
-                        <input
-                          type="checkbox"
-                          checked={
-                            spotifySelectedIds.length > 0 &&
-                            spotifySelectedIds.length === spotifySongs.length
-                          }
-                          onChange={handleToggleAllSpotifySongs}
-                        />
-                        Seleccionar todas
-                      </label>
-                      <label className={styles.spotifyFallbackField}>
-                        Disco fallback
-                        <select
-                          value={spotifyFallbackAlbumId}
-                          onChange={(event) =>
-                            setSpotifyFallbackAlbumId(event.target.value)
-                          }
-                        >
-                          <option value="">
-                            Solo auto-asignar por nombre de disco
-                          </option>
-                          {albums.map((album) => (
-                            <option key={album.id} value={album.id}>
-                              {album.title}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <button
-                        type="button"
-                        className={styles.spotifyImportButton}
-                        onClick={handleBulkImportSpotifySongs}
-                        disabled={
-                          spotifyBulkLoading || !spotifySelectedIds.length
-                        }
-                      >
-                        {spotifyBulkLoading
-                          ? 'Importando...'
-                          : `Importar seleccionadas (${spotifySelectedIds.length})`}
-                      </button>
-                    </div>
-                    <ul className={styles.statsList}>
-                      {spotifySongs.slice(0, 30).map((song) => {
-                        const resolvedAlbumId =
-                          resolveAlbumForSpotifySong(song);
-                        const resolvedAlbumTitle = albums.find(
-                          (album) => album.id === resolvedAlbumId,
-                        )?.title;
-                        return (
-                          <li key={`${song.id}-${song.albumId}`}>
-                            <span>
-                              <label className={styles.spotifyCheckLabel}>
-                                <input
-                                  type="checkbox"
-                                  checked={spotifySelectedIds.includes(song.id)}
-                                  onChange={() =>
-                                    handleToggleSpotifySong(song.id)
-                                  }
-                                  disabled={spotifyBulkLoading}
-                                />
-                                <span />
-                              </label>{' '}
-                              {song.title} <small>({song.albumName})</small>
-                            </span>
-                            <div className={styles.spotifySongActions}>
-                              <strong>{song.releaseDate || '-'}</strong>
-                              <small>
-                                {resolvedAlbumId
-                                  ? `-> ${resolvedAlbumTitle || 'disco'}`
-                                  : 'sin match'}
-                              </small>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                    {spotifySongs.length > 30 ? (
-                      <p className={styles.inlineNote}>
-                        Mostrando 30 de {spotifySongs.length} canciones.
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
-              </section>
-              </div>
-            </>
+            <ConfigSection
+              accountDraft={accountDraft}
+              setAccountDraft={setAccountDraft}
+              accountError={accountError}
+              accountMessage={accountMessage}
+              onUpdateAccount={handleUpdateAccount}
+              settingsDraft={settingsDraft}
+              setSettingsDraft={setSettingsDraft}
+              spotifyEnv={spotifyEnv}
+              settingsError={settingsError}
+              settingsMessage={settingsMessage}
+              onSaveSettings={handleSaveSettings}
+              onFetchSpotifySongs={handleFetchSpotifySongs}
+              spotifyFetchLoading={spotifyFetchLoading}
+              spotifyFetchError={spotifyFetchError}
+              spotifyNotice={spotifyNotice}
+              spotifyBulkLoading={spotifyBulkLoading}
+              spotifyBulkProgress={spotifyBulkProgress}
+              spotifySongs={spotifySongs}
+              spotifyMeta={spotifyMeta}
+              spotifySelectedIds={spotifySelectedIds}
+              onToggleAllSpotifySongs={handleToggleAllSpotifySongs}
+              spotifyFallbackAlbumId={spotifyFallbackAlbumId}
+              setSpotifyFallbackAlbumId={setSpotifyFallbackAlbumId}
+              albums={albums}
+              onBulkImportSpotifySongs={handleBulkImportSpotifySongs}
+              onToggleSpotifySong={handleToggleSpotifySong}
+              resolveAlbumForSpotifySong={resolveAlbumForSpotifySong}
+            />
           )}
         </section>
       </section>
-      {showAlbumModal ? (
-        <div
-          className={styles.modalBackdrop}
-          onClick={() => setShowAlbumModal(false)}
-          role="presentation"
-        >
-          <section
-            className={styles.modalCard}
-            role="dialog"
-            aria-modal="true"
-            aria-label={albumModalMode === 'edit' ? 'Editar disco' : 'Crear nuevo disco'}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={styles.modalHead}>
-              <h3 className={styles.subheading}>
-                {albumModalMode === 'edit' ? 'Editar disco' : 'Nuevo disco'}
-              </h3>
-              <button
-                type="button"
-                className={styles.modalClose}
-                onClick={() => setShowAlbumModal(false)}
-                aria-label="Cerrar modal"
-                title="Cerrar"
-              >
-                ×
-              </button>
-            </div>
-            <form className={styles.form} onSubmit={handleSaveAlbum}>
-              <label>
-                Titulo del disco
-                <input
-                  value={albumDraft.title}
-                  onChange={(event) =>
-                    setAlbumDraft((prev) => ({
-                      ...prev,
-                      title: event.target.value,
-                    }))
-                  }
-                  placeholder="Relatando Historias"
-                  required
-                />
-              </label>
-              <label>
-                Año
-                <select
-                  value={albumDraft.year}
-                  onChange={(event) =>
-                    setAlbumDraft((prev) => ({
-                      ...prev,
-                      year: event.target.value,
-                    }))
-                  }
-                >
-                  {YEAR_OPTIONS.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className={styles.actions}>
-                <button type="submit" className={styles.buttonSuccess}>
-                  {albumModalMode === 'edit' ? 'Guardar cambios' : 'Crear disco'}
-                </button>
-                <button type="button" className={styles.buttonNeutral} onClick={() => setShowAlbumModal(false)}>
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      ) : null}
-      {isFullscreenLoading ? (
-        <div
-          className={styles.fullscreenLoader}
-          role="status"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <div className={styles.fullscreenLoaderCard}>
-            <span className={styles.loaderDot} />
-            <p>{fullscreenLoadingMessage}</p>
-          </div>
-        </div>
-      ) : null}
+      <AlbumModal
+        showAlbumModal={showAlbumModal}
+        onClose={() => setShowAlbumModal(false)}
+        albumModalMode={albumModalMode}
+        albumDraft={albumDraft}
+        setAlbumDraft={setAlbumDraft}
+        YEAR_OPTIONS={YEAR_OPTIONS}
+        onSaveAlbum={handleSaveAlbum}
+      />
+      <FullscreenLoader message={isFullscreenLoading ? fullscreenLoadingMessage : ''} />
+      {adminFooter}
     </main>
   );
 }
