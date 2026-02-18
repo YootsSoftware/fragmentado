@@ -1,0 +1,1539 @@
+.shell {
+  min-height: 100dvh;
+  padding: 1.6rem 1rem;
+  background: radial-gradient(circle at 20% 0%, #141a21, #0e1217 55%);
+  color: #eef2f7;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  line-height: 1.4;
+}
+
+.navbar {
+  width: min(100%, 1120px);
+  margin: 0 auto 0.75rem;
+  padding: 0.55rem 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: #171c23;
+  border: 1px solid #2b3340;
+  border-radius: 12px;
+}
+
+.navLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.navBrand {
+  font-size: 0.84rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d2dae4;
+}
+
+.navSearch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #303948;
+  background: #121922;
+  color: #8f9eb1;
+  border-radius: 999px;
+  padding: 0.34rem 0.6rem;
+  min-width: 210px;
+}
+
+.navSearchWrap {
+  position: relative;
+}
+
+.navSearch input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #dce3ec;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.navSearch input::placeholder {
+  color: #8896a8;
+}
+
+.navSearchResults {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  width: min(440px, 86vw);
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  border: 1px solid #2d3848;
+  background: #111a26;
+  border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  z-index: 50;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.navSearchResult {
+  width: 100%;
+  border: 1px solid #2c3747;
+  border-radius: 9px;
+  background: #101925;
+  color: #dce5f2;
+  padding: 0.46rem 0.54rem;
+  text-align: left;
+  display: grid;
+  gap: 0.1rem;
+  cursor: pointer;
+}
+
+.navSearchResult:hover {
+  border-color: #48658a;
+  background: #142336;
+}
+
+.navSearchResultTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.navSearchResultMeta {
+  font-size: 0.72rem;
+  color: #9fb0c6;
+}
+
+.navSearchEmpty {
+  padding: 0.52rem 0.56rem;
+  border-radius: 9px;
+  border: 1px dashed #2c3747;
+  color: #97a8bd;
+  font-size: 0.76rem;
+}
+
+.navTabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tab,
+.tabActive {
+  border: 1px solid #3a475c;
+  border-radius: 999px;
+  background: #242f3f;
+  color: #dce3ec;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  padding: 0.4rem 0.72rem;
+  cursor: pointer;
+}
+
+.tabActive {
+  background: #32445c;
+  border-color: #4d6686;
+}
+
+.userPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.46rem;
+  font-size: 0.8rem;
+  color: #dde5f1;
+  border: 1px solid #3b4658;
+  background: #1d2734;
+  border-radius: 999px;
+  padding: 0.26rem 0.56rem 0.26rem 0.3rem;
+}
+
+.userAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f3b14c, #cb7e2f);
+  color: #1e1410;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.navUserArea {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.navLogout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #46556d;
+  border-radius: 999px;
+  background: #253246;
+  color: #dbe5f2;
+  font-size: 0.76rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.navLogout:hover {
+  background: #2d3d55;
+  border-color: #5a718f;
+}
+
+.card,
+.panel {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  background: #171c23;
+  border: 1px solid #2b3340;
+  border-radius: 14px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+}
+
+.card {
+  max-width: 440px;
+  padding: 1.3rem;
+}
+
+.card h1 {
+  margin: 0 0 0.4rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.card p {
+  margin: 0 0 1rem;
+  color: #aeb8c6;
+  font-size: 0.92rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.form label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  color: #c1cad7;
+}
+
+.form input,
+.form textarea,
+.form select,
+.form button,
+.sidebar button,
+.actions button,
+.platformsHead button {
+  font: inherit;
+}
+
+.form input,
+.form textarea,
+.form select,
+.sidebar label select {
+  width: 100%;
+  background: #10151c;
+  color: #eef2f7;
+  border: 1px solid #313c4b;
+  border-radius: 10px;
+  padding: 0.62rem 0.72rem;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form input::placeholder,
+.form textarea::placeholder {
+  color: #7d8a9a;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus,
+.sidebar label select:focus {
+  outline: none;
+  border-color: #7e8fa5;
+  background: #111824;
+  box-shadow: 0 0 0 3px rgba(126, 143, 165, 0.2);
+}
+
+.form textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.form button,
+.sidebar button,
+.actions button,
+.platformsHead button {
+  background: #273242;
+  color: #eef2f7;
+  border: 1px solid #3a475c;
+  border-radius: 10px;
+  padding: 0.56rem 0.78rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.form button:hover,
+.sidebar button:hover,
+.actions button:hover,
+.platformsHead button:hover {
+  background: #2f3d50;
+  border-color: #4a5a71;
+}
+
+.error {
+  margin: 0;
+  color: #ff9ba1;
+  font-size: 0.82rem;
+}
+
+.message {
+  margin: 0;
+  color: #a7e6b4;
+  font-size: 0.82rem;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+
+.panelSingle {
+  grid-template-columns: 1fr;
+}
+
+.sidebar {
+  border-right: 1px solid #2b3340;
+  padding: 1rem 0.95rem;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.sidebarHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sidebarHeadActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sidebarHead h2,
+.editor h2 {
+  margin: 0;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
+}
+
+.sidebar label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: #c1cad7;
+}
+
+.selectionToggle,
+.selectionToggleActive {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #4f6a8d;
+  border-radius: 10px;
+  background: #1f3550;
+  color: #e7f1ff;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.selectionToggleActive {
+  border-color: #a36a74;
+  background: #4a2a31;
+  color: #ffdbe1;
+}
+
+.selectionToggleIcon {
+  font-size: 0.96rem;
+  line-height: 1;
+}
+
+.subheading {
+  margin: 0;
+  font-size: 0.84rem;
+  letter-spacing: 0.03em;
+  color: #c8d1de;
+}
+
+.list {
+  display: grid;
+  gap: 0.4rem;
+  max-height: calc(100dvh - 250px);
+  overflow: auto;
+}
+
+.tree {
+  display: grid;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+  padding-bottom: 0.7rem;
+  align-content: start;
+}
+
+.treeAlbum {
+  border: 1px solid #273343;
+  border-radius: 12px;
+  background: #0f151d;
+  overflow: hidden;
+}
+
+.treeAlbumHeadRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem;
+  align-items: stretch;
+  padding: 0.42rem 0.5rem;
+  border-bottom: 1px solid #273343;
+  background: #121b27;
+}
+
+.treeAlbumHead {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.56rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.treeAlbumHead:hover {
+  background: #162131;
+}
+
+.treeAlbumEditIcon {
+  width: 34px;
+  min-height: 34px;
+  border: 1px solid #496080;
+  border-radius: 10px;
+  background: #1b2a3f;
+  color: #d8e8ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.treeAlbumEditIcon:hover {
+  background: #223652;
+  border-color: #6585af;
+}
+
+.treeAlbumTitleWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.treeAlbumGlyph {
+  color: #8ea4bf;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.treeAlbumTitle {
+  font-size: 0.84rem;
+  color: #e3ebf7;
+}
+
+.treeAlbumMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  font-size: 0.74rem;
+  color: #9eafc4;
+}
+
+.treeAlbumCount {
+  border: 1px solid #3f5169;
+  border-radius: 999px;
+  padding: 0.06rem 0.34rem;
+  font-size: 0.66rem;
+  color: #c2d0e1;
+}
+
+.treeSongs {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.5rem 0.48rem 0.5rem 0.72rem;
+  position: relative;
+}
+
+.treeSongs::before {
+  content: '';
+  position: absolute;
+  left: 0.58rem;
+  top: 0.38rem;
+  bottom: 0.38rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(121, 142, 170, 0.28),
+    rgba(121, 142, 170, 0.08)
+  );
+}
+
+.actionIcon {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  line-height: 1;
+}
+
+.sidebar .newAlbumButton,
+.sidebar .addSongButton,
+.sidebar .bulkDeleteButton {
+  width: 100%;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.sidebar .newAlbumButton {
+  border: 1px solid #6088b8;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #325982, #2a4d73);
+  color: #f1f7ff;
+  padding: 0.56rem 0.62rem;
+}
+
+.sidebar .newAlbumButton:hover {
+  background: linear-gradient(180deg, #39608d, #2f537c);
+  border-color: #7ca6dc;
+}
+
+.songRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  position: relative;
+}
+
+.songRow::before {
+  content: '';
+  position: absolute;
+  left: -0.37rem;
+  top: 50%;
+  width: 0.34rem;
+  height: 1px;
+  background: rgba(129, 150, 177, 0.45);
+}
+
+.songCheckbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.songCheckbox input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid #4a5d78;
+  background: #0f151d;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.songCheckbox input::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  transform: scale(0);
+  transition: transform 0.14s ease-in-out;
+  background: linear-gradient(180deg, #b6d6ff, #86b7f3);
+}
+
+.songCheckbox input:checked {
+  border-color: #7caee8;
+  background: #16283d;
+  box-shadow: 0 0 0 2px rgba(124, 174, 232, 0.2);
+}
+
+.songCheckbox input:checked::before {
+  transform: scale(1);
+}
+
+.songCheckbox input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 174, 232, 0.28);
+}
+
+.item,
+.itemActive {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  align-items: center;
+  gap: 0.55rem;
+  text-align: left;
+  background: linear-gradient(
+    180deg,
+    rgba(9, 14, 21, 0.97),
+    rgba(6, 10, 16, 0.96)
+  );
+  border: 1px solid rgba(58, 74, 95, 0.66);
+  border-radius: 11px;
+  padding: 0.55rem;
+  color: #eef2f7;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.14s ease;
+}
+
+.item:hover,
+.itemActive:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(14, 21, 31, 0.97),
+    rgba(9, 15, 23, 0.96)
+  );
+  transform: translateY(-1px);
+}
+
+.itemActive {
+  border-color: rgba(130, 170, 214, 0.88);
+  background: linear-gradient(
+    180deg,
+    rgba(18, 31, 47, 0.98),
+    rgba(12, 23, 36, 0.97)
+  );
+  box-shadow: 0 0 0 1px rgba(130, 170, 214, 0.3);
+  position: relative;
+}
+
+.itemActive::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #8eb9f0, #6f9bd4);
+}
+
+.item strong,
+.itemActive strong {
+  display: block;
+  font-size: 0.83rem;
+}
+
+.item small,
+.itemActive small {
+  font-size: 0.72rem;
+  color: #a6b0be;
+}
+
+.treeSongCover {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+
+.treeSongBody {
+  min-width: 0;
+}
+
+.songTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.treeSongBody strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar .addSongButton {
+  border: 1px dashed #6d90bd;
+  border-radius: 10px;
+  background: #15253a;
+  color: #ecf4ff;
+  padding: 0.56rem 0.62rem;
+}
+
+.sidebar .addSongButton:hover {
+  background: #1a2d46;
+  border-color: #89afe3;
+}
+
+.sidebar .bulkDeleteButton {
+  border: 1px solid #7d434a;
+  border-radius: 10px;
+  background: #4f242a;
+  color: #ffd9dd;
+  padding: 0.56rem 0.62rem;
+}
+
+.sidebar .bulkDeleteButton:hover {
+  background: #612d35;
+  border-color: #9b5962;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(4, 8, 13, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.modalCard {
+  width: min(100%, 460px);
+  border: 1px solid #2b3340;
+  border-radius: 14px;
+  background: #171c23;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+  padding: 0.95rem;
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.65rem;
+}
+
+.modalClose {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #43556f;
+  border-radius: 9px;
+  background: #253246;
+  color: #dce8f8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modalClose:hover {
+  background: #2d3f58;
+  border-color: #5c7698;
+}
+
+.editor {
+  padding: 1.05rem 1rem;
+}
+
+.editorHint {
+  margin: 0.2rem 0 0.95rem;
+  color: #9eabbb;
+  font-size: 0.86rem;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.7rem;
+}
+
+.dashboardStatCard,
+.dashboardCard {
+  border: 1px solid #2f3948;
+  border-radius: 10px;
+  background: #111a25;
+  padding: 0.7rem;
+}
+
+.dashboardStatCard p {
+  margin: 0;
+  color: #9eb0c7;
+  font-size: 0.76rem;
+}
+
+.dashboardStatCard strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.35rem;
+  color: #eef4fd;
+}
+
+.dashboardCard {
+  grid-column: span 2;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.dashboardWideCard {
+  grid-column: 1 / -1;
+}
+
+.dashboardCard h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #d9e3f1;
+}
+
+.dashboardInfoRows {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.dashboardInfoRows p {
+  margin: 0;
+  color: #b6c4d7;
+  font-size: 0.8rem;
+}
+
+.dashboardChartCanvas {
+  position: relative;
+  min-height: 220px;
+  width: 100%;
+}
+
+.dashboardChartCanvas :global(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #c1cad7;
+  font-size: 0.84rem;
+}
+
+.checkbox input {
+  width: auto;
+}
+
+.platformsSection {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  border: 1px solid #2f3948;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #121820;
+}
+
+.configWrap {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.configCard {
+  margin-top: 0;
+  border-color: #334154;
+  background:
+    linear-gradient(180deg, rgba(20, 27, 37, 0.96), rgba(17, 24, 33, 0.98));
+  padding: 0.9rem;
+}
+
+.configCardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.62rem;
+  border-bottom: 1px solid #2f3b4d;
+  padding-bottom: 0.58rem;
+}
+
+.configCardIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid #46556d;
+  background: #253246;
+  color: #dce8f8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.configCardTitleGroup {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.configCardTitleGroup h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #e3ebf7;
+}
+
+.configCardTitleGroup p {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #99a9be;
+}
+
+.configForm {
+  gap: 0.68rem;
+}
+
+.configGridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.configFieldSpanTwo {
+  grid-column: 1 / -1;
+}
+
+.configActions {
+  padding-top: 0.12rem;
+}
+
+.configActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.platformsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.platformsHead h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #c8d1de;
+}
+
+.platformRows {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.platformRow {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  border: 1px solid #2f3948;
+  border-radius: 10px;
+  padding: 0.6rem;
+  background: #0f151d;
+}
+
+.platformPreview {
+  width: 120px;
+  height: 34px;
+  object-fit: contain;
+  border: 1px solid #2f3948;
+  border-radius: 8px;
+  background: #121820;
+  padding: 0.25rem;
+}
+
+.inlineNote {
+  margin: 0;
+  color: #9eabbb;
+  font-size: 0.78rem;
+}
+
+.previewStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.previewReadyBadge,
+.previewMissingBadge,
+.previewLoadingBadge,
+.previewErrorBadge {
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.previewReadyBadge {
+  color: #cff0d9;
+  border-color: #4f7a5f;
+  background: #1f3a2d;
+}
+
+.previewMissingBadge {
+  color: #f3dccb;
+  border-color: #7c604a;
+  background: #3a2c22;
+}
+
+.previewLoadingBadge {
+  color: #d8e7ff;
+  border-color: #5a78a1;
+  background: #25364c;
+}
+
+.previewErrorBadge {
+  color: #ffd8dd;
+  border-color: #8b4f57;
+  background: #4a252c;
+}
+
+.coverSection {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.coverManager {
+  position: relative;
+  width: min(100%, 360px);
+  border: 1px solid #2f3948;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f151d;
+}
+
+.coverHero {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.coverEmpty {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9eabbb;
+  font-size: 0.84rem;
+}
+
+.coverOverlayButton,
+.coverAddButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #3a475c;
+  background: #273242;
+  color: #eef2f7;
+  border-radius: 10px;
+  padding: 0.56rem 0.78rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
+}
+
+.coverOverlayButton {
+  position: absolute;
+  inset: auto 0.55rem 0.55rem 0.55rem;
+  opacity: 0;
+}
+
+.coverManager:hover .coverOverlayButton {
+  opacity: 1;
+}
+
+.coverAddButton {
+  margin: 0.6rem;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.audioPreview {
+  width: min(100%, 420px);
+}
+
+.statsBox {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.statsBox p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #c1cad7;
+}
+
+.statsList {
+  list-style: none;
+  padding: 0;
+  margin: 0.2rem 0 0;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.statsList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #2f3948;
+  background: #0f151d;
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+  color: #b8c2d0;
+  gap: 0.7rem;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0.65rem;
+}
+
+.chartCard {
+  border: 1px solid #2f3948;
+  background: #0f151d;
+  border-radius: 10px;
+  padding: 0.58rem;
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chartCard h4 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: #ced9e7;
+}
+
+.chartCanvas {
+  position: relative;
+  min-height: 240px;
+  width: 100%;
+  min-width: 0;
+}
+
+.chartCanvas :global(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.spotifyBulkBar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: end;
+  border: 1px solid #2d3848;
+  border-radius: 10px;
+  background: #111a26;
+  padding: 0.55rem 0.6rem;
+}
+
+.spotifyCheckLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-size: 0.76rem;
+  color: #c4cfde;
+}
+
+.spotifyCheckLabel input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid #4a5d78;
+  background: #0f151d;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.spotifyCheckLabel input::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  transform: scale(0);
+  transition: transform 0.14s ease-in-out;
+  background: linear-gradient(180deg, #b6d6ff, #86b7f3);
+}
+
+.spotifyCheckLabel input:checked {
+  border-color: #7caee8;
+  background: #16283d;
+  box-shadow: 0 0 0 2px rgba(124, 174, 232, 0.2);
+}
+
+.spotifyCheckLabel input:checked::before {
+  transform: scale(1);
+}
+
+.spotifyCheckLabel input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 174, 232, 0.28);
+}
+
+.spotifyFallbackField {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  color: #aebbd0;
+}
+
+.spotifyFallbackField select {
+  width: 100%;
+  background: #0f151d;
+  color: #eef2f7;
+  border: 1px solid #364457;
+  border-radius: 8px;
+  padding: 0.42rem 0.56rem;
+  min-height: 36px;
+}
+
+.spotifyImportButton {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 0.42rem 0.72rem;
+}
+
+.loaderRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid #2f3b4d;
+  border-radius: 10px;
+  background: #101925;
+  color: #c9d5e6;
+  padding: 0.5rem 0.62rem;
+  font-size: 0.78rem;
+}
+
+.loaderDot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 2px solid #7ba5df;
+  border-top-color: transparent;
+  animation: spin 0.9s linear infinite;
+}
+
+.fullscreenLoader {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 10, 16, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.fullscreenLoaderCard {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.68rem;
+  border: 1px solid #3a4a60;
+  border-radius: 12px;
+  background: #121a24;
+  color: #e8eef7;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+}
+
+.fullscreenLoaderCard p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spotifySongActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spotifySongActions small {
+  color: #95a8c2;
+  font-size: 0.74rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.actions .buttonNeutral,
+.platformsHead .buttonNeutral {
+  border-color: #5d6a7d;
+  background: #283446;
+  color: #d8e1ee;
+  padding: 0.46rem 0.72rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.actions .buttonNeutral:hover,
+.platformsHead .buttonNeutral:hover {
+  background: #314157;
+  border-color: #778aa4;
+}
+
+.actions .buttonInfo,
+.platformsHead .buttonInfo {
+  border-color: #5f86b5;
+  background: #29486d;
+  color: #e5f1ff;
+  padding: 0.46rem 0.72rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.actions .buttonInfo:hover,
+.platformsHead .buttonInfo:hover {
+  background: #315884;
+  border-color: #78a4da;
+}
+
+.actions .spotifySyncButton {
+  border-color: #3f8d5b;
+  background: linear-gradient(180deg, #1f6f42, #195a36);
+  color: #e9fff1;
+  box-shadow: 0 8px 20px rgba(23, 103, 56, 0.24);
+}
+
+.actions .spotifySyncButton:hover {
+  background: linear-gradient(180deg, #24844e, #1d6a41);
+  border-color: #53ad74;
+}
+
+.actions .spotifySyncButton:disabled {
+  opacity: 0.72;
+  box-shadow: none;
+}
+
+.spotifySyncIcon {
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.spotifySyncIcon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.actions .buttonSuccess,
+.platformsHead .buttonSuccess,
+.actions .spotifyImportButton {
+  border-color: #4f7a5f;
+  background: #254435;
+  color: #d7f2e0;
+  padding: 0.46rem 0.72rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.actions .buttonSuccess:hover,
+.platformsHead .buttonSuccess:hover,
+.actions .spotifyImportButton:hover {
+  background: #2b5340;
+  border-color: #629775;
+}
+
+.actions .saveButton {
+  border-color: #4f7a5f;
+  background: #254435;
+  color: #d7f2e0;
+  padding: 0.46rem 0.72rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.actions .saveButton:hover {
+  background: #2b5340;
+  border-color: #629775;
+}
+
+.actions .delete {
+  background: #4f252b;
+  border-color: #7e434b;
+  color: #ffe1e5;
+  padding: 0.46rem 0.72rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.actions .delete:hover {
+  background: #622e36;
+  border-color: #a05a64;
+}
+
+@media (max-width: 980px) {
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .navLead {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .navUserArea {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .navSearch {
+    min-width: 0;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .panel {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #2b323c;
+  }
+
+  .grid,
+  .platformRow {
+    grid-template-columns: 1fr;
+  }
+
+  .spotifyBulkBar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .spotifyImportButton {
+    width: 100%;
+  }
+
+  .platformPreview {
+    justify-self: start;
+  }
+
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardCard {
+    grid-column: auto;
+  }
+
+  .configGridTwo {
+    grid-template-columns: 1fr;
+  }
+
+  .configFieldSpanTwo {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 1120px) {
+  .configWrap {
+    grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.55fr);
+    align-items: start;
+  }
+}
