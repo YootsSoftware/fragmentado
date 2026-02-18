@@ -362,11 +362,49 @@ export default function AdminPage() {
     return [...songMatches, ...albumMatches].slice(0, 10);
   }, [searchQuery, albums, releases, releaseCountByAlbum, albumTitleById]);
 
-  const refreshSession = async () => {
-    const response = await fetch('/api/admin/session', { cache: 'no-store' });
-    const data = await response.json();
-    setSession({ loading: false, ...data });
-  };
+  const readJsonSafe = useCallback(async (response) => {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const getErrorMessage = useCallback((response, data, fallback) => {
+    if (data && typeof data.error === 'string' && data.error.trim()) {
+      return data.error;
+    }
+    if (!response.ok) {
+      return `${fallback} (HTTP ${response.status})`;
+    }
+    return fallback;
+  }, []);
+
+  const refreshSession = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/session', { cache: 'no-store' });
+      const data = await readJsonSafe(response);
+      if (!response.ok || !data) {
+        setSession({
+          loading: false,
+          bootstrapped: true,
+          authenticated: false,
+          username: null,
+        });
+        return null;
+      }
+      setSession({ loading: false, ...data });
+      return data;
+    } catch {
+      setSession({
+        loading: false,
+        bootstrapped: true,
+        authenticated: false,
+        username: null,
+      });
+      return null;
+    }
+  }, [readJsonSafe]);
 
   const handleSelectRelease = useCallback((release) => {
     setIsManualNew(false);
@@ -444,7 +482,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     refreshSession();
-  }, []);
+  }, [refreshSession]);
 
   useEffect(() => {
     if (session.authenticated) {
@@ -478,39 +516,52 @@ export default function AdminPage() {
   const handleCreateFirstAdmin = async (event) => {
     event.preventDefault();
     setAuthError('');
+    try {
+      const response = await fetch('/api/admin/bootstrap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+      const data = await readJsonSafe(response);
 
-    const response = await fetch('/api/admin/bootstrap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
+      if (!response.ok) {
+        setAuthError(
+          getErrorMessage(response, data, 'No se pudo crear la cuenta admin.'),
+        );
+        return;
+      }
 
-    if (!response.ok) {
-      const data = await response.json();
-      setAuthError(data.error ?? 'No se pudo crear la cuenta admin.');
-      return;
+      await refreshSession();
+    } catch {
+      setAuthError('No se pudo crear la cuenta admin. Revisa servidor o red.');
     }
-
-    await refreshSession();
   };
 
   const handleLogin = async (event) => {
     event.preventDefault();
     setAuthError('');
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+      const data = await readJsonSafe(response);
 
-    const response = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
+      if (!response.ok) {
+        setAuthError(getErrorMessage(response, data, 'Credenciales invalidas.'));
+        return;
+      }
 
-    if (!response.ok) {
-      const data = await response.json();
-      setAuthError(data.error ?? 'Credenciales invalidas.');
-      return;
+      const sessionData = await refreshSession();
+      if (!sessionData?.authenticated) {
+        setAuthError(
+          'Inicio correcto, pero no se guardo la sesion. Revisa HTTPS/dominio y FG_ADMIN_SECRET.',
+        );
+      }
+    } catch {
+      setAuthError('No se pudo iniciar sesion. Revisa servidor o red.');
     }
-
-    await refreshSession();
   };
 
   const handleLogout = async () => {
