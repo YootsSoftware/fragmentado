@@ -309,6 +309,17 @@
   border-color: #4a5a71;
 }
 
+.form button:disabled,
+.sidebar button:disabled,
+.actions button:disabled,
+.platformsHead button:disabled,
+.form input:disabled,
+.form textarea:disabled,
+.form select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .error {
   margin: 0;
   color: #ff9ba1;

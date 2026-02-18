@@ -220,6 +220,7 @@ export default function AdminPage() {
     password: '',
   });
   const [authError, setAuthError] = useState('');
+  const [authSubmitting, setAuthSubmitting] = useState(false);
 
   const [albums, setAlbums] = useState([]);
   const [selectedAlbumId, setSelectedAlbumId] = useState('');
@@ -409,6 +410,14 @@ export default function AdminPage() {
     }
   }, [readJsonSafe]);
 
+  const handleAuthFormKeyDown = useCallback((event) => {
+    if (event.key !== 'Enter') return;
+    const form = event.currentTarget;
+    if (!form || typeof form.requestSubmit !== 'function') return;
+    event.preventDefault();
+    form.requestSubmit();
+  }, []);
+
   const handleSelectRelease = useCallback((release) => {
     setIsManualNew(false);
     setSelectedAlbumId(release.albumId || '');
@@ -518,7 +527,9 @@ export default function AdminPage() {
 
   const handleCreateFirstAdmin = async (event) => {
     event.preventDefault();
+    if (authSubmitting) return;
     setAuthError('');
+    setAuthSubmitting(true);
     try {
       const response = await fetch('/api/admin/bootstrap', {
         method: 'POST',
@@ -538,12 +549,16 @@ export default function AdminPage() {
       await refreshSession();
     } catch {
       setAuthError('No se pudo crear la cuenta admin. Revisa servidor o red.');
+    } finally {
+      setAuthSubmitting(false);
     }
   };
 
   const handleLogin = async (event) => {
     event.preventDefault();
+    if (authSubmitting) return;
     setAuthError('');
+    setAuthSubmitting(true);
     try {
       const response = await fetch('/api/admin/login', {
         method: 'POST',
@@ -566,6 +581,8 @@ export default function AdminPage() {
       }
     } catch {
       setAuthError('No se pudo iniciar sesion. Revisa servidor o red.');
+    } finally {
+      setAuthSubmitting(false);
     }
   };
 
@@ -1094,11 +1111,30 @@ export default function AdminPage() {
     try {
       const response = await fetch('/api/admin/spotify/songs', {
         cache: 'no-store',
+        credentials: 'include',
       });
-      const data = await response.json();
+      const rawPayload = await response.text();
+      let data = null;
+      if (rawPayload) {
+        try {
+          data = JSON.parse(rawPayload);
+        } catch {
+          data = null;
+        }
+      }
+
       if (!response.ok) {
+        const fallbackMessage = rawPayload
+          ? rawPayload.slice(0, 180)
+          : 'No se pudieron cargar canciones de Spotify.';
         setSpotifyFetchError(
-          data.error ?? 'No se pudieron cargar canciones de Spotify.',
+          data?.error ?? fallbackMessage,
+        );
+        return;
+      }
+      if (!data || typeof data !== 'object') {
+        setSpotifyFetchError(
+          'Respuesta invalida del servidor al consultar Spotify.',
         );
         return;
       }
@@ -1521,7 +1557,11 @@ export default function AdminPage() {
         <section className={styles.card}>
           <h1>fg-admin</h1>
           <p>Crea tu cuenta inicial de administrador.</p>
-          <form className={styles.form} onSubmit={handleCreateFirstAdmin}>
+          <form
+            className={styles.form}
+            onSubmit={handleCreateFirstAdmin}
+            onKeyDown={handleAuthFormKeyDown}
+          >
             <label>
               Usuario
               <input
@@ -1534,6 +1574,7 @@ export default function AdminPage() {
                 }
                 required
                 minLength={4}
+                disabled={authSubmitting}
               />
             </label>
             <label>
@@ -1549,10 +1590,19 @@ export default function AdminPage() {
                 }
                 required
                 minLength={8}
+                disabled={authSubmitting}
               />
             </label>
             {authError ? <p className={styles.error}>{authError}</p> : null}
-            <button type="submit">Crear cuenta</button>
+            {authSubmitting ? (
+              <div className={styles.loaderRow} role="status" aria-live="polite">
+                <span className={styles.loaderDot} />
+                <span>Creando cuenta...</span>
+              </div>
+            ) : null}
+            <button type="submit" disabled={authSubmitting}>
+              {authSubmitting ? 'Procesando...' : 'Crear cuenta'}
+            </button>
           </form>
         </section>
       </main>
@@ -1565,7 +1615,11 @@ export default function AdminPage() {
         <section className={styles.card}>
           <h1>fg-admin</h1>
           <p>Inicia sesion para administrar contenido.</p>
-          <form className={styles.form} onSubmit={handleLogin}>
+          <form
+            className={styles.form}
+            onSubmit={handleLogin}
+            onKeyDown={handleAuthFormKeyDown}
+          >
             <label>
               Usuario
               <input
@@ -1577,6 +1631,7 @@ export default function AdminPage() {
                   }))
                 }
                 required
+                disabled={authSubmitting}
               />
             </label>
             <label>
@@ -1591,10 +1646,19 @@ export default function AdminPage() {
                   }))
                 }
                 required
+                disabled={authSubmitting}
               />
             </label>
             {authError ? <p className={styles.error}>{authError}</p> : null}
-            <button type="submit">Entrar</button>
+            {authSubmitting ? (
+              <div className={styles.loaderRow} role="status" aria-live="polite">
+                <span className={styles.loaderDot} />
+                <span>Iniciando sesion...</span>
+              </div>
+            ) : null}
+            <button type="submit" disabled={authSubmitting}>
+              {authSubmitting ? 'Validando...' : 'Entrar'}
+            </button>
           </form>
         </section>
       </main>
