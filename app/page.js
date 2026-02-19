@@ -369,16 +369,30 @@ export default function Home() {
     }
   };
 
+  if (!isInitialDataReady) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.heroLoaderOverlay} role="status" aria-live="polite">
+          <div className={styles.heroLoaderCard}>
+            <span className={styles.heroLoaderDot} />
+            <p>Cargando lanzamiento...</p>
+          </div>
+        </div>
+        <footer className={styles.footer}>
+          <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
+            created by Yoots Music®
+          </a>
+        </footer>
+      </main>
+    );
+  }
+
   if (!activeRelease) {
     return (
       <main className={styles.main}>
         <section className={styles.emptyStateCard}>
-          <h1>{isInitialDataReady ? 'Sin lanzamientos disponibles' : 'Cargando lanzamientos...'}</h1>
-          <p>
-            {isInitialDataReady
-              ? 'Este artista aun no tiene lanzamientos disponibles. Vuelve pronto.'
-              : 'Estamos preparando la discografia del artista.'}
-          </p>
+          <h1>Sin lanzamientos disponibles</h1>
+          <p>Este artista aun no tiene lanzamientos disponibles. Vuelve pronto.</p>
         </section>
         <footer className={styles.footer}>
           <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
