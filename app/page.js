@@ -192,7 +192,27 @@ export default function Home() {
     () => Object.fromEntries(albums.map((album) => [album.id, album.title])),
     [albums],
   );
-  const releasesForIndex = sortedReleases;
+  const releaseGroups = useMemo(() => {
+    const groups = [];
+    const groupByAlbumId = new Map();
+
+    sortedReleases.forEach((release) => {
+      const albumId = release.albumId || 'sin-album';
+      if (!groupByAlbumId.has(albumId)) {
+        const group = {
+          id: albumId,
+          title: releaseAlbumById[albumId] ?? 'Lanzamiento',
+          releases: [],
+        };
+        groupByAlbumId.set(albumId, group);
+        groups.push(group);
+      }
+
+      groupByAlbumId.get(albumId).releases.push(release);
+    });
+
+    return groups;
+  }, [releaseAlbumById, sortedReleases]);
   const activePreviewAudio =
     activeRelease?.previewAudio ||
     previewByRelease[activeRelease?.id ?? ''] ||
@@ -422,7 +442,6 @@ export default function Home() {
       ) : null}
       <main className={styles.hero}>
         <section className={styles.center}>
-          <p className={styles.heroEyebrow}>Relatando Historias</p>
           <h1 className={styles.releaseTitle}>{activeRelease.title}</h1>
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>{activeRelease.badge}</span>
@@ -566,28 +585,41 @@ export default function Home() {
 
         <section className={styles.releasePicker} aria-label="Lanzamientos disponibles">
           <div className={styles.releasePickerHead}>
-            <p>Indice de lanzamientos</p>
-            <span>{releases.length} canciones</span>
+            <p>Discografia</p>
+            <span>
+              {releases.length} canciones / {releaseGroups.length}{' '}
+              {releaseGroups.length === 1 ? 'album' : 'albumes'}
+            </span>
           </div>
-          {releasesForIndex.map((release) => (
-            <button
-              key={release.id}
-              type="button"
-              className={`${styles.releaseChip} ${
-                release.id === activeRelease.id ? styles.releaseChipActive : ''
-              }`}
-              onClick={() => setActiveReleaseId(release.id)}
-            >
-              <Image src={release.cover} alt={release.title} width={54} height={54} />
-              <span className={styles.releaseChipText}>
-                <strong>{release.title}</strong>
-                <small>{releaseAlbumById[release.albumId] ?? 'Lanzamiento'}</small>
-              </span>
-              <span className={styles.releaseChipMeta}>
-                <em>{formatReleaseDate(release.releaseDate)}</em>
-                <i>{release.badge}</i>
-              </span>
-            </button>
+          {releaseGroups.map((group) => (
+            <div className={styles.releaseGroup} key={group.id}>
+              <div className={styles.releaseGroupHead}>
+                <p>{group.title}</p>
+                <span>
+                  {group.releases.length} {group.releases.length === 1 ? 'cancion' : 'canciones'}
+                </span>
+              </div>
+              {group.releases.map((release) => (
+                <button
+                  key={release.id}
+                  type="button"
+                  className={`${styles.releaseChip} ${
+                    release.id === activeRelease.id ? styles.releaseChipActive : ''
+                  }`}
+                  onClick={() => setActiveReleaseId(release.id)}
+                >
+                  <Image src={release.cover} alt={release.title} width={54} height={54} />
+                  <span className={styles.releaseChipText}>
+                    <strong>{release.title}</strong>
+                    <small>{releaseAlbumById[release.albumId] ?? 'Lanzamiento'}</small>
+                  </span>
+                  <span className={styles.releaseChipMeta}>
+                    <em>{formatReleaseDate(release.releaseDate)}</em>
+                    <i>{release.badge}</i>
+                  </span>
+                </button>
+              ))}
+            </div>
           ))}
         </section>
       </main>

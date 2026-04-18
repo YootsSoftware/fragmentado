@@ -159,14 +159,6 @@
   text-align: center;
 }
 
-.heroEyebrow {
-  margin: 0;
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #a8b4c3;
-}
-
 .heroPills {
   display: flex;
   flex-wrap: wrap;
@@ -602,6 +594,49 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--muted);
+}
+
+.releaseGroup {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.releaseGroup + .releaseGroup {
+  margin-top: 0.45rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(37, 42, 49, 0.82);
+}
+
+.releaseGroupHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.releaseGroupHead p,
+.releaseGroupHead span {
+  margin: 0;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.releaseGroupHead p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #d3d9e1;
+}
+
+.releaseGroupHead span {
+  flex-shrink: 0;
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
 }
 
 .releaseChip {
