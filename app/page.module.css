@@ -8,7 +8,14 @@
 
   min-height: 100dvh;
   padding: 2.25rem 1rem 1.5rem;
-  background: var(--bg);
+  background:
+    linear-gradient(
+      145deg,
+      rgb(var(--ambient-b) / 0.42) 0%,
+      rgb(var(--ambient-a) / 0.32) 36%,
+      rgb(var(--ambient-c) / 0.28) 68%,
+      var(--bg) 100%
+    );
   color: var(--text);
   font-family:
     Inter,
@@ -76,19 +83,25 @@
 .main::before {
   background:
     radial-gradient(
-      54rem 36rem at 14% 10%,
-      rgb(var(--ambient-b) / 0.9) 0%,
-      transparent 54%
+      62rem 44rem at 10% 8%,
+      rgb(var(--ambient-b) / 0.98) 0%,
+      transparent 62%
     ),
     radial-gradient(
-      52rem 34rem at 88% 12%,
-      rgb(var(--ambient-a) / 0.82) 0%,
-      transparent 90%
+      58rem 40rem at 92% 10%,
+      rgb(var(--ambient-a) / 0.84) 0%,
+      transparent 88%
     ),
     radial-gradient(
-      56rem 36rem at 50% 96%,
-      rgb(var(--ambient-c) / 0.72) 0%,
-      transparent 100%
+      68rem 46rem at 52% 92%,
+      rgb(var(--ambient-c) / 0.86) 0%,
+      transparent 92%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(var(--ambient-b) / 0.14) 0%,
+      rgb(var(--ambient-a) / 0.08) 38%,
+      rgb(var(--ambient-c) / 0.14) 100%
     );
   transition: background 0.45s ease;
 }
@@ -96,9 +109,10 @@
 .main::after {
   background: linear-gradient(
     180deg,
-    rgba(12, 13, 15, 0.44) 0%,
-    rgba(12, 13, 15, 0.6) 55%,
-    rgba(12, 13, 15, 0.74) 100%
+    rgba(10, 11, 14, 0.28) 0%,
+    rgba(10, 11, 14, 0.44) 24%,
+    rgba(10, 11, 14, 0.62) 58%,
+    rgba(10, 11, 14, 0.8) 100%
   );
 }
 
@@ -139,14 +153,28 @@
 
 .center {
   grid-column: 1;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background:
+    linear-gradient(
+      160deg,
+      rgb(var(--ambient-a) / 0.18) 0%,
+      rgba(20, 23, 27, 0.96) 26%,
+      rgba(20, 23, 27, 0.97) 74%,
+      rgb(var(--ambient-c) / 0.12) 100%
+    );
+  border: 1px solid rgb(var(--ambient-b) / 0.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 46px rgba(0, 0, 0, 0.22);
   border-radius: 14px;
   padding: 1.35rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  transition:
+    background 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
 }
 
 .releaseTitle {
@@ -167,14 +195,21 @@
 }
 
 .heroPill {
-  border: 1px solid #2f3a46;
+  border: 1px solid rgb(var(--ambient-b) / 0.3);
   border-radius: 999px;
   padding: 0.24rem 0.52rem;
   font-size: 0.62rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #b7c2d0;
-  background: rgba(19, 24, 30, 0.74);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ambient-a) / 0.14) 0%,
+    rgba(19, 24, 30, 0.74) 100%
+  );
+  transition:
+    background 0.45s ease,
+    border-color 0.45s ease;
 }
 
 .coverContainer {
@@ -570,12 +605,25 @@
   top: 1rem;
   max-height: calc(100dvh - 2rem);
   overflow: auto;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background:
+    linear-gradient(
+      180deg,
+      rgb(var(--ambient-b) / 0.18) 0%,
+      rgba(20, 23, 27, 0.95) 18%,
+      rgba(20, 23, 27, 0.97) 100%
+    );
+  border: 1px solid rgb(var(--ambient-c) / 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 18px 40px rgba(0, 0, 0, 0.2);
   border-radius: 14px;
   padding: 0.75rem;
   display: grid;
   gap: 0.35rem;
+  transition:
+    background 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
 }
 
 .releasePickerHead {
@@ -647,18 +695,28 @@
   gap: 0.6rem;
   border: 1px solid transparent;
   border-radius: 8px;
-  background: #1a1f25;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ambient-a) / 0.12) 0%,
+    rgba(26, 31, 37, 0.92) 100%
+  );
   padding: 0.45rem 0.5rem;
   text-align: left;
   cursor: pointer;
   transition:
     border-color 0.2s ease,
-    background-color 0.2s ease;
+    background 0.3s ease,
+    transform 0.2s ease;
 }
 
 .releaseChip:hover {
-  border-color: #4f5a67;
-  background: #212831;
+  border-color: rgb(var(--ambient-b) / 0.42);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ambient-b) / 0.2) 0%,
+    rgba(33, 40, 49, 0.98) 100%
+  );
+  transform: translateY(-1px);
 }
 
 .releaseChip img {
@@ -667,8 +725,13 @@
 }
 
 .releaseChipActive {
-  border-color: #6d7b8a;
-  background: #26303a;
+  border-color: rgb(var(--ambient-b) / 0.54);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ambient-b) / 0.28) 0%,
+    rgb(var(--ambient-c) / 0.16) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgb(var(--ambient-a) / 0.1);
 }
 
 .releaseChipText {
