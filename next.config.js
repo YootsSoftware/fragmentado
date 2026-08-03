@@ -18,6 +18,9 @@ const contentSecurityPolicy = [
 
 const nextConfig = {
   poweredByHeader: false,
+  experimental: {
+    middlewareClientMaxBodySize: '25mb',
+  },
   images: {
     remotePatterns: [
       {

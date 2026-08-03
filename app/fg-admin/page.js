@@ -808,6 +808,11 @@ export default function AdminPage() {
   };
 
   const uploadMedia = async (file) => {
+    const maxImageSize = 20 * 1024 * 1024;
+    if (file.type.startsWith('image/') && file.size > maxImageSize) {
+      throw new Error('Maximo 20MB por imagen.');
+    }
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -816,9 +821,13 @@ export default function AdminPage() {
       body: formData,
     });
 
-    const data = await response.json();
+    const data = await readJsonSafe(response);
     if (!response.ok) {
-      throw new Error(data.error ?? 'No se pudo subir el archivo.');
+      throw new Error(getErrorMessage(response, data, 'No se pudo subir el archivo.'));
+    }
+
+    if (!data?.url) {
+      throw new Error('El servidor no devolvio una URL para el archivo.');
     }
 
     return data.url;

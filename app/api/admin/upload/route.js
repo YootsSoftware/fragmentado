@@ -52,7 +52,15 @@ export async function POST(request) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
   }
 
-  const formData = await request.formData();
+  let formData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json(
+      { error: 'No se pudo leer el archivo. Verifica que no exceda 20MB.' },
+      { status: 400 },
+    );
+  }
   const file = formData.get('file');
 
   if (!file || typeof file === 'string') {
