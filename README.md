@@ -63,6 +63,8 @@ SPOTIFY_MARKET=MX
 
 ## Desarrollo
 
+Requiere Node.js 20.
+
 ```bash
 npm install
 npm run dev
