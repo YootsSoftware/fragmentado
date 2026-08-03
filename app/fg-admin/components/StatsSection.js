@@ -13,9 +13,10 @@ export default function StatsSection({
 }) {
   return (
     <>
-      <h2>Estadisticas</h2>
+      <p className={styles.sectionEyebrow}>Actividad</p>
+      <h2>Estadísticas</h2>
       <p className={styles.editorHint}>
-        Vista general de rendimiento de toda la discografia.
+        Rendimiento de los enlaces publicados en la discografía.
       </p>
       <section className={styles.platformsSection}>
         <div className={styles.platformsHead}>

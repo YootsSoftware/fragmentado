@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSpotifyConfigFromEnv } from '../../../../lib/server/spotify-config';
+import { checkRateLimit } from '../../../../lib/server/rate-limit';
 
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
@@ -88,6 +89,18 @@ const fetchTrack = async (trackId, token, market) => {
 };
 
 export async function GET(request) {
+  const rateLimit = await checkRateLimit(request, {
+    scope: 'spotify-preview',
+    limit: 30,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Demasiadas solicitudes.' },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const sourceUrl = String(searchParams.get('url') ?? '').trim();
   const trackId = getSpotifyTrackId(sourceUrl);

@@ -11,18 +11,24 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-brands-svg-icons": "^6.4.0",
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
-    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@fortawesome/react-fontawesome": "^3.5.0",
     "chart.js": "^4.5.1",
-    "eslint": "8.40.0",
-    "eslint-config-next": "13.4.1",
-    "i": "^0.3.7",
     "mongodb": "^7.1.0",
-    "next": "13.4.1",
-    "npm": "^9.6.6",
+    "next": "^15.5.22",
     "react": "18.2.0",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.22"
+  },
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "$sharp"
   }
 }

@@ -12,6 +12,10 @@ const ensureAuth = (request) => {
 const normalizePayload = (payload) => {
   return {
     artistName: String(payload?.artistName ?? '').trim(),
+    hero: {
+      mediaType: payload?.hero?.mediaType === 'image' ? 'image' : 'youtube',
+      releaseId: String(payload?.hero?.releaseId ?? '').trim(),
+    },
     socials: {
       facebook: String(payload?.socials?.facebook ?? '').trim(),
       instagram: String(payload?.socials?.instagram ?? '').trim(),

@@ -10,6 +10,7 @@ export default function ConfigSection({
   onUpdateAccount,
   settingsDraft,
   setSettingsDraft,
+  releases,
   spotifyEnv,
   settingsError,
   settingsMessage,
@@ -31,11 +32,14 @@ export default function ConfigSection({
   onToggleSpotifySong,
   resolveAlbumForSpotifySong,
 }) {
+  const heroVideoReleases = releases.filter((release) => Boolean(release.youtube));
+
   return (
     <>
-      <h2>Configuracion</h2>
+      <p className={styles.sectionEyebrow}>Sistema</p>
+      <h2>Ajustes</h2>
       <p className={styles.editorHint}>
-        Administra cuenta, artista global del proyecto y conexion con Spotify API.
+        Administra la cuenta, el Hero, las redes del grupo y la conexión con Spotify.
       </p>
       <div className={styles.configWrap}>
         <section className={`${styles.platformsSection} ${styles.configCard}`}>
@@ -113,8 +117,8 @@ export default function ConfigSection({
               <FontAwesomeIcon icon={faGear} />
             </span>
             <div className={styles.configCardTitleGroup}>
-              <h3>Proyecto y Spotify API</h3>
-              <p>Datos globales para sincronizacion automatica.</p>
+              <h3>Sitio y Spotify API</h3>
+              <p>Identidad pública, Hero y sincronización automática.</p>
             </div>
           </div>
           <form className={`${styles.form} ${styles.configForm}`} onSubmit={onSaveSettings}>
@@ -128,6 +132,59 @@ export default function ConfigSection({
                   }
                 />
               </label>
+              <div className={styles.configFieldSpanTwo}>
+                <p className={styles.inlineNote}>Fondo del Hero.</p>
+              </div>
+              <label>
+                Tipo de fondo
+                <select
+                  value={settingsDraft.hero?.mediaType ?? 'youtube'}
+                  onChange={(event) =>
+                    setSettingsDraft((prev) => ({
+                      ...prev,
+                      hero: {
+                        ...(prev.hero ?? {}),
+                        mediaType: event.target.value,
+                      },
+                    }))
+                  }
+                >
+                  <option value="youtube">Video de YouTube</option>
+                  <option value="image">Imagen estatica</option>
+                </select>
+              </label>
+              {settingsDraft.hero?.mediaType !== 'image' ? (
+                <label>
+                  Video del lanzamiento
+                  <select
+                    value={settingsDraft.hero?.releaseId ?? ''}
+                    onChange={(event) =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        hero: {
+                          ...(prev.hero ?? {}),
+                          releaseId: event.target.value,
+                        },
+                      }))
+                    }
+                    required
+                  >
+                    <option value="" disabled>Selecciona un lanzamiento</option>
+                    {heroVideoReleases.map((release) => (
+                      <option key={release.id} value={release.id}>{release.title}</option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <div className={styles.configStaticMediaNote}>
+                  Se usara la imagen actual de Pausa al Amor.
+                </div>
+              )}
+              <div className={styles.configFieldSpanTwo}>
+                <p className={styles.inlineNote}>
+                  El video se reproduce silenciado y en bucle. La imagen actual se mantiene como respaldo.
+                </p>
+              </div>
               <div className={styles.configFieldSpanTwo}>
                 <p className={styles.inlineNote}>Redes sociales del grupo (visibles en el Hero).</p>
               </div>

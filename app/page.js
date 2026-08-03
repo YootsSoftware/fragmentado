@@ -1,24 +1,33 @@
 'use client';
 
 import Image from 'next/image';
-import styles from './page.module.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons';
 import { faCirclePause } from '@fortawesome/free-solid-svg-icons';
+import {
+  faFacebookF,
+  faInstagram,
+  faTiktok,
+  faYoutube,
+} from '@fortawesome/free-brands-svg-icons';
+import monogram from './assets/Monograma.avif';
+import { SITE_CONTENT } from '../lib/site-content';
+import styles from './page.module.css';
+
+const DARK_BASE = [13, 14, 15];
+const DEFAULT_HERO_SETTINGS = {
+  mediaType: 'youtube',
+  releaseId: 'donde-empieza-termina',
+};
 
 const getReleaseTimestamp = (release) => {
-  const raw = String(release?.releaseDate ?? '').trim();
-  if (!raw) return 0;
-  const parsed = new Date(raw);
-  if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
-  return 0;
+  const parsed = new Date(String(release?.releaseDate ?? '').trim());
+  return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
 };
 
 const sortReleasesByDateDesc = (list) =>
   [...list].sort((a, b) => getReleaseTimestamp(b) - getReleaseTimestamp(a));
-
-const DARK_BASE = [16, 18, 21];
 
 const clampColor = (value) => Math.max(0, Math.min(255, Math.round(value)));
 
@@ -39,12 +48,9 @@ const getAmbientPaletteFromImage = (src) =>
     image.onload = () => {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d', { willReadFrequently: true });
-      if (!context) {
-        resolve(null);
-        return;
-      }
+      if (!context) return resolve(null);
 
-      const size = 26;
+      const size = 28;
       canvas.width = size;
       canvas.height = size;
       context.drawImage(image, 0, 0, size, size);
@@ -54,47 +60,37 @@ const getAmbientPaletteFromImage = (src) =>
       let rSum = 0;
       let gSum = 0;
       let bSum = 0;
-
       let bestScore = -1;
       let vibrant = [120, 120, 120];
 
-      for (let i = 0; i < data.length; i += 4) {
-        const alpha = data[i + 3];
-        if (alpha < 24) continue;
-
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        rSum += r;
-        gSum += g;
-        bSum += b;
-        count += 1;
-
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
+      for (let index = 0; index < data.length; index += 4) {
+        if (data[index + 3] < 24) continue;
+        const color = [data[index], data[index + 1], data[index + 2]];
+        const max = Math.max(...color);
+        const min = Math.min(...color);
         const saturation = max === 0 ? 0 : (max - min) / max;
-        const brightness = (r + g + b) / 765;
-        const score = saturation * 0.75 + brightness * 0.25;
+        const brightness = color.reduce((sum, value) => sum + value, 0) / 765;
+        const score = saturation * 0.76 + brightness * 0.24;
+
+        rSum += color[0];
+        gSum += color[1];
+        bSum += color[2];
+        count += 1;
 
         if (score > bestScore) {
           bestScore = score;
-          vibrant = [r, g, b];
+          vibrant = color;
         }
       }
 
-      if (!count) {
-        resolve(null);
-        return;
-      }
-
+      if (!count) return resolve(null);
       const average = [rSum / count, gSum / count, bSum / count].map(clampColor);
-      const accent = mixColor(average, vibrant, 0.48);
+      const accent = mixColor(average, vibrant, 0.5);
 
-      resolve({
-        a: mixColor(average, DARK_BASE, 0.64),
-        b: mixColor(vibrant, DARK_BASE, 0.58),
-        c: mixColor(accent, DARK_BASE, 0.7),
+      return resolve({
+        a: mixColor(average, DARK_BASE, 0.52),
+        b: mixColor(vibrant, DARK_BASE, 0.46),
+        c: mixColor(accent, DARK_BASE, 0.6),
       });
     };
 
@@ -103,12 +99,12 @@ const getAmbientPaletteFromImage = (src) =>
 
 const withTrackingParams = (url, releaseId, content) => {
   if (!url) return '';
-
   try {
     const parsedUrl = new URL(url);
+    if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') return '';
     parsedUrl.searchParams.set('utm_source', 'fragmentado_site');
-    parsedUrl.searchParams.set('utm_medium', 'release_page');
-    parsedUrl.searchParams.set('utm_campaign', releaseId);
+    parsedUrl.searchParams.set('utm_medium', 'official_site');
+    parsedUrl.searchParams.set('utm_campaign', releaseId || 'fragmentado');
     parsedUrl.searchParams.set('utm_content', content);
     return parsedUrl.toString();
   } catch {
@@ -118,516 +114,770 @@ const withTrackingParams = (url, releaseId, content) => {
 
 const formatReleaseDate = (value) => {
   if (!value) return '';
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00` : value;
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(parsed);
+};
 
-  const parsed = new Date(value);
-  if (!Number.isNaN(parsed.getTime()) && value.includes('-')) {
-    return new Intl.DateTimeFormat('es-MX', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(parsed);
+const getYouTubeId = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    if (url.hostname.includes('youtu.be')) return url.pathname.split('/').filter(Boolean)[0] ?? '';
+    if (url.pathname.startsWith('/shorts/')) return url.pathname.split('/')[2] ?? '';
+    return url.searchParams.get('v') ?? '';
+  } catch {
+    return '';
   }
-
-  return value;
 };
 
 const SOCIAL_ICON_MAP = {
-  facebook: (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M13.5 21v-8.1h2.8l.4-3.2h-3.2V7.6c0-.9.3-1.6 1.7-1.6h1.8V3.1c-.3 0-1.4-.1-2.7-.1-2.7 0-4.5 1.6-4.5 4.6v2.1H7v3.2h2.8V21h3.7z" />
-    </svg>
-  ),
-  instagram: (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7A3 3 0 1 1 12 9a3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM12 2.8c2.9 0 3.2 0 4.4.1 1.1.1 1.8.2 2.2.4.5.2.9.4 1.3.8s.6.8.8 1.3c.2.4.3 1.1.4 2.2.1 1.2.1 1.5.1 4.4s0 3.2-.1 4.4c-.1 1.1-.2 1.8-.4 2.2a3.6 3.6 0 0 1-2.1 2.1c-.4.2-1.1.3-2.2.4-1.2.1-1.5.1-4.4.1s-3.2 0-4.4-.1c-1.1-.1-1.8-.2-2.2-.4a3.6 3.6 0 0 1-2.1-2.1c-.2-.4-.3-1.1-.4-2.2-.1-1.2-.1-1.5-.1-4.4s0-3.2.1-4.4c.1-1.1.2-1.8.4-2.2.2-.5.4-.9.8-1.3s.8-.6 1.3-.8c.4-.2 1.1-.3 2.2-.4 1.2-.1 1.5-.1 4.4-.1zm0-1.8c-2.9 0-3.3 0-4.5.1-1.2.1-2 .2-2.7.5a5.3 5.3 0 0 0-1.9 1.2A5.3 5.3 0 0 0 1.6 4.7c-.3.7-.4 1.5-.5 2.7C1 8.7 1 9.1 1 12s0 3.3.1 4.5c.1 1.2.2 2 .5 2.7.3.7.7 1.4 1.2 1.9s1.2.9 1.9 1.2c.7.3 1.5.4 2.7.5 1.2.1 1.6.1 4.5.1s3.3 0 4.5-.1c1.2-.1 2-.2 2.7-.5.7-.3 1.4-.7 1.9-1.2s.9-1.2 1.2-1.9c.3-.7.4-1.5.5-2.7.1-1.2.1-1.6.1-4.5s0-3.3-.1-4.5c-.1-1.2-.2-2-.5-2.7a5.3 5.3 0 0 0-1.2-1.9 5.3 5.3 0 0 0-1.9-1.2c-.7-.3-1.5-.4-2.7-.5C15.3 1 14.9 1 12 1z" />
-    </svg>
-  ),
-  youtube: (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.7 31.7 0 0 0 0 12a31.7 31.7 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.7 31.7 0 0 0 24 12a31.7 31.7 0 0 0-.5-5.8zM9.7 15.6V8.4L16 12l-6.3 3.6z" />
-    </svg>
-  ),
-  tiktok: (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M17.8 5.1a4.9 4.9 0 0 0 2.9 1v3a8 8 0 0 1-2.9-.6v6.4a6 6 0 1 1-5.2-6v3.1a3 3 0 1 0 2.1 2.9V1.9h3.1v3.2z" />
-    </svg>
-  ),
+  facebook: faFacebookF,
+  instagram: faInstagram,
+  youtube: faYoutube,
+  tiktok: faTiktok,
 };
+
+const SOCIAL_LABEL_MAP = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+};
+
+function ContactForm() {
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+
+    setStatus({ state: 'sending', message: 'Enviando solicitud...' });
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'No se pudo enviar la solicitud.');
+
+      form.reset();
+      setStatus({
+        state: 'success',
+        message: 'Solicitud recibida. El equipo de Fragmentado dará seguimiento a tu mensaje.',
+      });
+    } catch (error) {
+      setStatus({
+        state: 'error',
+        message: error instanceof Error ? error.message : 'No se pudo enviar la solicitud.',
+      });
+    }
+  };
+
+  return (
+    <form className={styles.contactForm} onSubmit={handleSubmit}>
+      <div className={styles.honeypot} aria-hidden="true">
+        <label htmlFor="website">Sitio web</label>
+        <input id="website" name="website" tabIndex="-1" autoComplete="off" />
+      </div>
+      <label>
+        Nombre <span>*</span>
+        <input name="name" required maxLength="100" autoComplete="name" />
+      </label>
+      <label>
+        Organización, municipio o empresa
+        <input name="organization" maxLength="140" autoComplete="organization" />
+      </label>
+      <label>
+        Correo electrónico <span>*</span>
+        <input name="email" type="email" required maxLength="180" autoComplete="email" />
+      </label>
+      <label>
+        Teléfono
+        <input name="phone" type="tel" maxLength="40" autoComplete="tel" />
+      </label>
+      <label>
+        Lugar del evento
+        <input name="location" maxLength="180" />
+      </label>
+      <label>
+        Fecha
+        <input name="eventDate" type="date" />
+      </label>
+      <label>
+        Tipo de evento <span>*</span>
+        <select name="eventType" required defaultValue="">
+          <option value="" disabled>Selecciona una opción</option>
+          {SITE_CONTENT.eventTypes.map((eventType) => (
+            <option key={eventType} value={eventType}>{eventType}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Duración aproximada
+        <input name="duration" maxLength="80" placeholder="Ej. 60 minutos" />
+      </label>
+      <label>
+        ¿Requiere equipo de audio?
+        <select name="requiresAudio" defaultValue="Por definir">
+          <option>Por definir</option>
+          <option>Sí</option>
+          <option>No</option>
+        </select>
+      </label>
+      <label className={styles.messageField}>
+        Mensaje <span>*</span>
+        <textarea name="message" required maxLength="2400" rows="6" />
+      </label>
+      <div className={styles.formFooter}>
+        <button type="submit" disabled={status.state === 'sending'}>
+          {status.state === 'sending' ? 'Enviando...' : 'Enviar solicitud'}
+        </button>
+        <p className={status.state === 'error' ? styles.formError : styles.formStatus} role="status">
+          {status.message}
+        </p>
+      </div>
+    </form>
+  );
+}
 
 export default function Home() {
   const audioPlayer = useRef(null);
   const [albums, setAlbums] = useState([]);
   const [releases, setReleases] = useState([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [previewByRelease, setPreviewByRelease] = useState({});
+  const [artistName, setArtistName] = useState(SITE_CONTENT.name);
+  const [heroSettings, setHeroSettings] = useState(DEFAULT_HERO_SETTINGS);
+  const [socialLinks, setSocialLinks] = useState({});
   const [activeReleaseId, setActiveReleaseId] = useState('');
-  const [ambientPalette, setAmbientPalette] = useState({
-    a: [50, 56, 66],
-    b: [64, 54, 48],
-    c: [44, 50, 60],
-  });
-  const [isHeroLoading, setIsHeroLoading] = useState(true);
+  const [previewByRelease, setPreviewByRelease] = useState({});
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isInitialDataReady, setIsInitialDataReady] = useState(false);
-  const [isInitialCoverReady, setIsInitialCoverReady] = useState(false);
-  const [socialLinks, setSocialLinks] = useState({
-    facebook: '',
-    instagram: '',
-    youtube: '',
-    tiktok: '',
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeVideoId, setActiveVideoId] = useState('');
+  const [isHeroVideoReady, setIsHeroVideoReady] = useState(false);
+  const [ambientPalette, setAmbientPalette] = useState({
+    a: [45, 38, 31],
+    b: [93, 43, 35],
+    c: [48, 66, 57],
   });
 
   const sortedReleases = useMemo(() => sortReleasesByDateDesc(releases), [releases]);
   const activeRelease = useMemo(() => {
     if (!sortedReleases.length) return null;
-    return (
-      sortedReleases.find((release) => release.id === activeReleaseId) ??
-      sortedReleases[0]
-    );
+    return sortedReleases.find((release) => release.id === activeReleaseId) ?? sortedReleases[0];
   }, [activeReleaseId, sortedReleases]);
-  const activeAlbumTitle = useMemo(() => {
-    if (!activeRelease) return '';
-    return albums.find((album) => album.id === activeRelease.albumId)?.title ?? 'Relatando Historias';
-  }, [activeRelease, albums]);
-  const releaseAlbumById = useMemo(
-    () => Object.fromEntries(albums.map((album) => [album.id, album.title])),
+  const albumById = useMemo(
+    () => Object.fromEntries(albums.map((album) => [album.id, album])),
     [albums],
   );
+  const activeAlbum = activeRelease ? albumById[activeRelease.albumId] : null;
   const releaseGroups = useMemo(() => {
     const groups = [];
-    const groupByAlbumId = new Map();
-
+    const byAlbum = new Map();
     sortedReleases.forEach((release) => {
-      const albumId = release.albumId || 'sin-album';
-      if (!groupByAlbumId.has(albumId)) {
+      const id = release.albumId || 'sin-album';
+      if (!byAlbum.has(id)) {
         const group = {
-          id: albumId,
-          title: releaseAlbumById[albumId] ?? 'Lanzamiento',
+          id,
+          title: albumById[id]?.title ?? 'Lanzamientos',
+          year: albumById[id]?.year ?? '',
           releases: [],
         };
-        groupByAlbumId.set(albumId, group);
+        byAlbum.set(id, group);
         groups.push(group);
       }
-
-      groupByAlbumId.get(albumId).releases.push(release);
+      byAlbum.get(id).releases.push(release);
     });
-
     return groups;
-  }, [releaseAlbumById, sortedReleases]);
-  const activePreviewAudio =
-    activeRelease?.previewAudio ||
-    previewByRelease[activeRelease?.id ?? ''] ||
-    '';
-  const hasPreview = Boolean(activePreviewAudio);
-  const upcomingRelease = useMemo(() => {
-    const list = releases.filter((release) => release.isUpcoming);
-    if (!list.length) return null;
-    return [...list].sort((a, b) => String(a.releaseDate).localeCompare(String(b.releaseDate)))[0];
-  }, [releases]);
-  const availableSocialLinks = useMemo(
+  }, [albumById, sortedReleases]);
+  const videoReleases = useMemo(
+    () => sortedReleases.filter((release) => getYouTubeId(release.youtube)),
+    [sortedReleases],
+  );
+  const upcomingRelease = useMemo(
     () =>
-      Object.entries(socialLinks).filter(([, url]) => Boolean(String(url ?? '').trim())),
+      sortedReleases
+        .filter((release) => release.isUpcoming)
+        .sort((a, b) => getReleaseTimestamp(a) - getReleaseTimestamp(b))[0] ?? null,
+    [sortedReleases],
+  );
+  const availableSocialLinks = useMemo(
+    () => Object.entries(socialLinks).filter(([, url]) => Boolean(String(url ?? '').trim())),
     [socialLinks],
   );
+  const heroVideoRelease = useMemo(
+    () => releases.find((release) => release.id === heroSettings.releaseId) ?? null,
+    [heroSettings.releaseId, releases],
+  );
+  const heroVideoId =
+    heroSettings.mediaType === 'youtube' ? getYouTubeId(heroVideoRelease?.youtube) : '';
+  const activePreviewAudio = activeRelease?.previewAudio || previewByRelease[activeRelease?.id] || '';
+  const hasPreview = Boolean(activePreviewAudio);
+
+  useEffect(() => {
+    setIsHeroVideoReady(false);
+  }, [heroVideoId]);
 
   useEffect(() => {
     let cancelled = false;
-
-    const loadReleases = async () => {
+    let readyTimer;
+    const loadingStartedAt = performance.now();
+    const loadContent = async () => {
       try {
         const response = await fetch('/api/releases', { cache: 'no-store' });
-        if (!response.ok) return;
+        if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
         const data = await response.json();
         if (cancelled) return;
 
-        setSocialLinks({
-          facebook: String(data?.settings?.socials?.facebook ?? ''),
-          instagram: String(data?.settings?.socials?.instagram ?? ''),
-          youtube: String(data?.settings?.socials?.youtube ?? ''),
-          tiktok: String(data?.settings?.socials?.tiktok ?? ''),
+        const nextReleases = Array.isArray(data?.releases) ? data.releases : [];
+        setAlbums(Array.isArray(data?.albums) ? data.albums : []);
+        setReleases(nextReleases);
+        setArtistName(String(data?.settings?.artistName ?? '').trim() || SITE_CONTENT.name);
+        setHeroSettings({
+          mediaType: data?.settings?.hero?.mediaType === 'image' ? 'image' : 'youtube',
+          releaseId: String(
+            data?.settings?.hero?.releaseId ?? DEFAULT_HERO_SETTINGS.releaseId,
+          ),
         });
-
-        if (Array.isArray(data?.albums) && data.albums.length) {
-          setAlbums(data.albums);
-        }
-        if (Array.isArray(data?.releases) && data.releases.length) {
-          setReleases(data.releases);
-          setActiveReleaseId((currentId) => {
-            if (data.releases.some((release) => release.id === currentId)) return currentId;
-            const latestByDate = sortReleasesByDateDesc(data.releases)[0] ?? data.releases[0];
-            return latestByDate.id;
-          });
-        }
+        setSocialLinks(data?.settings?.socials ?? {});
+        setActiveReleaseId(sortReleasesByDateDesc(nextReleases)[0]?.id ?? '');
       } catch {
-        // Keep empty state if API is unavailable.
+        if (!cancelled) setReleases([]);
       } finally {
-        if (!cancelled) setIsInitialDataReady(true);
+        const remainingAnimationTime = Math.max(0, 1050 - (performance.now() - loadingStartedAt));
+        readyTimer = window.setTimeout(() => {
+          if (!cancelled) setIsInitialDataReady(true);
+        }, remainingAnimationTime);
       }
     };
 
-    loadReleases();
-
+    loadContent();
     return () => {
       cancelled = true;
+      window.clearTimeout(readyTimer);
     };
   }, []);
 
   useEffect(() => {
-    if (!isHeroLoading) return;
-    setIsInitialCoverReady(false);
-  }, [activeRelease?.id, isHeroLoading]);
-
-  useEffect(() => {
-    if (!isHeroLoading) return;
-    if (!isInitialDataReady || !isInitialCoverReady) return;
-    const timeoutId = window.setTimeout(() => {
-      setIsHeroLoading(false);
-    }, 180);
-    return () => window.clearTimeout(timeoutId);
-  }, [isHeroLoading, isInitialDataReady, isInitialCoverReady]);
-
-  useEffect(() => {
-    if (!isHeroLoading) return;
-    const timeoutId = window.setTimeout(() => {
-      setIsHeroLoading(false);
-    }, 3500);
-    return () => window.clearTimeout(timeoutId);
-  }, [isHeroLoading]);
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (!activeRelease) return;
     const player = audioPlayer.current;
-    if (!player) return;
-
-    player.pause();
-    player.load();
+    if (player) {
+      player.pause();
+      player.load();
+    }
     setIsPlaying(false);
-  }, [activeRelease]);
 
-  useEffect(() => {
-    if (!activeRelease) return;
     let cancelled = false;
-
-    const applyPalette = async () => {
-      const palette = await getAmbientPaletteFromImage(activeRelease.cover || '/pausa-min.jpg');
-      if (!cancelled && palette) {
-        setAmbientPalette(palette);
-      }
-    };
-
-    applyPalette();
-
+    getAmbientPaletteFromImage(activeRelease.cover || '/pausa-min.jpg').then((palette) => {
+      if (!cancelled && palette) setAmbientPalette(palette);
+    });
     return () => {
       cancelled = true;
     };
   }, [activeRelease]);
 
   useEffect(() => {
-    if (!activeRelease) return;
-    if (activeRelease.previewAudio) return;
-    if (previewByRelease[activeRelease.id]) return;
-
-    const spotifyLink =
-      activeRelease.platforms?.find(
-        (platform) => String(platform.title ?? '').toLowerCase().trim() === 'spotify',
-      )?.link ?? '';
+    if (!activeRelease || activeRelease.previewAudio || previewByRelease[activeRelease.id]) return;
+    const spotifyLink = activeRelease.platforms?.find(
+      (platform) => String(platform.title ?? '').toLowerCase().trim() === 'spotify',
+    )?.link;
     if (!spotifyLink) return;
 
     let cancelled = false;
-    const loadPreview = async () => {
-      try {
-        const response = await fetch(
-          `/api/spotify/preview?url=${encodeURIComponent(spotifyLink)}`,
-          { cache: 'no-store' },
-        );
-        const data = await response.json();
-        if (!response.ok) return;
-        if (!cancelled && data?.previewUrl) {
-          setPreviewByRelease((prev) => ({
-            ...prev,
+    fetch(`/api/spotify/preview?url=${encodeURIComponent(spotifyLink)}`, { cache: 'no-store' })
+      .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+      .then(({ ok, data }) => {
+        if (!cancelled && ok && data?.previewUrl) {
+          setPreviewByRelease((current) => ({
+            ...current,
             [activeRelease.id]: String(data.previewUrl),
           }));
         }
-      } catch {
-        // ignore preview fetch failures
-      }
-    };
+      })
+      .catch(() => {});
 
-    loadPreview();
     return () => {
       cancelled = true;
     };
   }, [activeRelease, previewByRelease]);
 
-  const trackClick = (channel) => {
-    if (!activeRelease) return;
+  const trackClick = (channel, releaseId = activeRelease?.id) => {
+    if (!releaseId) return;
     fetch('/api/track-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ releaseId: activeRelease.id, channel }),
-    }).catch(() => {
-      // Ignore tracking failures to avoid blocking UX.
-    });
+      body: JSON.stringify({ releaseId, channel }),
+    }).catch(() => {});
   };
 
   const toggleAudio = async () => {
-    if (!activeRelease || !hasPreview) return;
-
-    const player = audioPlayer.current;
-    if (!player) return;
-
+    if (!hasPreview || !audioPlayer.current) return;
     if (isPlaying) {
-      player.pause();
+      audioPlayer.current.pause();
       setIsPlaying(false);
       return;
     }
-
     try {
-      await player.play();
+      await audioPlayer.current.play();
       setIsPlaying(true);
-    } catch (error) {
-      console.error('No se pudo reproducir el audio:', error);
+    } catch {
+      setIsPlaying(false);
     }
+  };
+
+  const selectRelease = (releaseId) => {
+    setActiveReleaseId(releaseId);
+    window.requestAnimationFrame(() => {
+      document.getElementById('lanzamiento')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const openVideo = (release) => {
+    const youtubeId = getYouTubeId(release.youtube);
+    if (!youtubeId) return;
+    setActiveVideoId(youtubeId);
+    trackClick('youtube', release.id);
+    window.requestAnimationFrame(() => {
+      document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   if (!isInitialDataReady) {
     return (
-      <main className={styles.main}>
-        <div className={styles.heroLoaderOverlay} role="status" aria-live="polite">
-          <div className={styles.heroLoaderCard}>
-            <span className={styles.heroLoaderDot} />
-            <p>Cargando lanzamiento...</p>
-          </div>
-        </div>
-        <footer className={styles.footer}>
-          <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
-            created by Yoots Music®
-          </a>
-        </footer>
+      <main className={styles.loadingScreen} role="status" aria-live="polite">
+        <video
+          className={styles.loadingMonogram}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster={monogram.src}
+          aria-hidden="true"
+        >
+          <source src="/fragmentado-loader.webm" type="video/webm" />
+          <source src="/fragmentado-loader.mp4" type="video/mp4" />
+        </video>
+        <p>Fragmentado...</p>
       </main>
     );
   }
 
-  if (!activeRelease) {
-    return (
-      <main className={styles.main}>
-        <section className={styles.emptyStateCard}>
-          <h1>Sin lanzamientos disponibles</h1>
-          <p>Este artista aun no tiene lanzamientos disponibles. Vuelve pronto.</p>
-        </section>
-        <footer className={styles.footer}>
-          <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
-            created by Yoots Music®
-          </a>
-        </footer>
-      </main>
-    );
-  }
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'MusicGroup',
+    name: artistName,
+    url: 'https://fragmentado.com',
+    genre: 'Música regional mexicana',
+    foundingLocation: { '@type': 'Place', name: 'Sierra Mixe, Oaxaca, México' },
+    sameAs: availableSocialLinks.map(([, url]) => url),
+    album: albums.map((album) => ({
+      '@type': 'MusicAlbum',
+      name: album.title,
+      datePublished: album.year,
+    })),
+  };
 
   return (
     <div
-      className={styles.main}
+      className={styles.page}
       style={{
         '--ambient-a': rgbToString(ambientPalette.a),
         '--ambient-b': rgbToString(ambientPalette.b),
         '--ambient-c': rgbToString(ambientPalette.c),
       }}
     >
-      {isHeroLoading ? (
-        <div className={styles.heroLoaderOverlay} role="status" aria-live="polite">
-          <div className={styles.heroLoaderCard}>
-            <span className={styles.heroLoaderDot} />
-            <p>Cargando lanzamiento...</p>
-          </div>
-        </div>
-      ) : null}
-      <main className={styles.hero}>
-        <section className={styles.center}>
-          <h1 className={styles.releaseTitle}>{activeRelease.title}</h1>
-          <div className={styles.heroPills}>
-            <span className={styles.heroPill}>{activeRelease.badge}</span>
-            <span className={styles.heroPill}>{activeAlbumTitle}</span>
-            <span className={styles.heroPill}>{formatReleaseDate(activeRelease.releaseDate)}</span>
-          </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
+      />
 
-          <audio
-            id="audio-player"
-            src={activePreviewAudio || undefined}
-            loop
-            ref={audioPlayer}
+      <header className={`${styles.siteHeader} ${isScrolled ? styles.siteHeaderScrolled : ''}`}>
+        <a className={styles.wordmark} href="#inicio" onClick={() => setIsMenuOpen(false)}>
+          {artistName}
+        </a>
+        <button
+          type="button"
+          className={styles.menuButton}
+          aria-expanded={isMenuOpen}
+          aria-controls="site-navigation"
+          aria-label={isMenuOpen ? 'Cerrar navegación' : 'Abrir navegación'}
+          onClick={() => setIsMenuOpen((current) => !current)}
+        >
+          <span />
+          <span />
+        </button>
+        <nav id="site-navigation" className={`${styles.navigation} ${isMenuOpen ? styles.navigationOpen : ''}`}>
+          {SITE_CONTENT.nav.map((item) => (
+            <a key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)}>{item.label}</a>
+          ))}
+        </nav>
+      </header>
+
+      <main>
+        <section className={styles.hero} id="inicio">
+          <Image
+            className={styles.heroImage}
+            src="/pausa-min.jpg"
+            alt="Integrantes de Fragmentado en el arte audiovisual de Pausa al Amor"
+            fill
+            priority
+            sizes="100vw"
           />
-
-          <div className={styles.coverContainer}>
-            <button
-              type="button"
-              className={`${styles.playButton} ${!hasPreview ? styles.playButtonDisabled : ''}`}
-              onClick={toggleAudio}
-              aria-label={
-                hasPreview
-                  ? isPlaying
-                    ? 'Pausar audio'
-                    : 'Reproducir audio'
-                  : 'Preview no disponible'
-              }
-              disabled={!hasPreview}
-            >
-              <FontAwesomeIcon
-                icon={isPlaying ? faCirclePause : faPlayCircle}
-                className={styles.play_icon}
+          {heroVideoId ? (
+            <div className={styles.heroVideoFrame} aria-hidden="true">
+              <iframe
+                className={`${styles.heroVideo} ${isHeroVideoReady ? styles.heroVideoReady : ''}`}
+                src={`https://www.youtube-nocookie.com/embed/${heroVideoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroVideoId}&playsinline=1&rel=0&iv_load_policy=3&disablekb=1&fs=0`}
+                title={`Video de fondo: ${heroVideoRelease?.title ?? 'Fragmentado'}`}
+                allow="autoplay; encrypted-media"
+                referrerPolicy="strict-origin-when-cross-origin"
+                tabIndex="-1"
+                onLoad={() => setIsHeroVideoReady(true)}
               />
-            </button>
-            <Image
-              className={styles.cover}
-              src={activeRelease.cover}
-              alt={activeRelease.title}
-              width={420}
-              height={420}
-              priority
-              onLoadingComplete={() => {
-                if (isHeroLoading) setIsInitialCoverReady(true);
-              }}
-              onError={() => {
-                if (isHeroLoading) setIsInitialCoverReady(true);
-              }}
-            />
-          </div>
-
-          <p className={styles.artistName}>{activeRelease.artist}</p>
-          <div className={styles.releaseMetaRow}>
-            <p className={styles.albumTitle}>{activeAlbumTitle}</p>
-            <p className={styles.releaseDate}>{formatReleaseDate(activeRelease.releaseDate)}</p>
-          </div>
-          <p className={styles.kicker}>{activeRelease.badge}</p>
-          {availableSocialLinks.length ? (
-            <div className={styles.socialRow} aria-label="Redes sociales">
-              {availableSocialLinks.map(([network, url]) => (
-                <a
-                  key={network}
-                  href={url}
-                  onClick={() => trackClick(`social:${network}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.socialIconLink}
-                  aria-label={network}
-                >
-                  {SOCIAL_ICON_MAP[network]}
-                </a>
-              ))}
             </div>
           ) : null}
-          {upcomingRelease && upcomingRelease.id !== activeRelease.id ? (
-            <button
-              type="button"
-              className={styles.upcomingCallout}
-              onClick={() => setActiveReleaseId(upcomingRelease.id)}
-            >
-              Proximo: {upcomingRelease.title} - {formatReleaseDate(upcomingRelease.releaseDate)}
-            </button>
-          ) : null}
-
-          {activeRelease.youtube ? (
-            <a
-              className={styles.videoButton}
-              href={withTrackingParams(activeRelease.youtube, activeRelease.id, 'youtube')}
-              onClick={() => trackClick('youtube')}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className={styles.videoButtonIcon} aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-                  <path d="M23.5 6.2a3.04 3.04 0 0 0-2.14-2.15C19.45 3.5 12 3.5 12 3.5s-7.45 0-9.36.55A3.04 3.04 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3.04 3.04 0 0 0 2.14 2.15C4.55 20.5 12 20.5 12 20.5s7.45 0 9.36-.55a3.04 3.04 0 0 0 2.14-2.15A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.5-5.8zM9.75 15.55V8.45L16 12l-6.25 3.55z" />
-                </svg>
-              </span>
-              <span className={styles.videoButtonText}>Ver video en YouTube</span>
-            </a>
-          ) : (
-            <div className={styles.videoButtonDisabled}>Video no disponible</div>
-          )}
-
-          <div className={styles.platformList}>
-            {activeRelease.platforms.length ? (
-              activeRelease.platforms.map((platform, index) => (
-                <a
-                  className={styles.streamingLinkWrap}
-                  key={platform.title}
-                  href={withTrackingParams(
-                    platform.link,
-                    activeRelease.id,
-                    `platform_${platform.title.replace(/\s+/g, '_')}`,
-                  )}
-                  onClick={() => trackClick(`platform:${platform.title}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ '--stagger': `${index * 70}ms` }}
-                >
-                  <div className={styles.platformBrand}>
-                    <span className={styles.platformLogoWrap}>
-                      <Image
-                        className={styles.platformLogo}
-                        src={platform.icon}
-                        height={32}
-                        width={96}
-                        alt={platform.title}
-                      />
-                    </span>
-                    <span className={styles.platformTitle}>{platform.title}</span>
-                  </div>
-                  <span className={styles.streamingLink}>Escuchar</span>
-                </a>
-              ))
-            ) : (
-              <div className={styles.emptyPlatforms}>
-                Links de streaming en actualización para este lanzamiento.
+          <div className={styles.heroShade} />
+          <div className={styles.heroContent}>
+            <h1>{artistName}</h1>
+            <div className={styles.heroActions}>
+              <a className={styles.primaryButton} href="#musica">Escuchar música</a>
+              <a className={styles.secondaryButton} href="#videos">Ver videos</a>
+              <a className={styles.secondaryButton} href="#contrataciones">Contrataciones</a>
+            </div>
+            {availableSocialLinks.length ? (
+              <div className={styles.heroSocialLinks} aria-label="Redes sociales de Fragmentado">
+                <span>Síguenos</span>
+                {availableSocialLinks.map(([network, url]) => (
+                  <a
+                    key={network}
+                    href={url}
+                    onClick={() => trackClick(`social:${network}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={SOCIAL_LABEL_MAP[network] ?? network}
+                    title={SOCIAL_LABEL_MAP[network] ?? network}
+                  >
+                    {SOCIAL_ICON_MAP[network] ? (
+                      <FontAwesomeIcon icon={SOCIAL_ICON_MAP[network]} aria-hidden="true" />
+                    ) : (
+                      <span aria-hidden="true">{network.slice(0, 2)}</span>
+                    )}
+                  </a>
+                ))}
               </div>
-            )}
+            ) : null}
+            {upcomingRelease ? (
+              <button
+                type="button"
+                className={styles.heroAnnouncement}
+                onClick={() => selectRelease(upcomingRelease.id)}
+              >
+                Próximo lanzamiento · {upcomingRelease.title} · {formatReleaseDate(upcomingRelease.releaseDate)}
+              </button>
+            ) : null}
           </div>
-
+          <p className={styles.heroCredit}>
+            {heroVideoId
+              ? `Video oficial · ${heroVideoRelease?.title ?? 'Fragmentado'}`
+              : 'Arte audiovisual · Pausa al Amor'}
+          </p>
+          <a className={styles.scrollCue} href="#presentacion" aria-label="Continuar al contenido">
+            <span />
+          </a>
         </section>
 
-        <section className={styles.releasePicker} aria-label="Lanzamientos disponibles">
-          <div className={styles.releasePickerHead}>
-            <p>Discografia</p>
-            <span>
-              {releases.length} canciones / {releaseGroups.length}{' '}
-              {releaseGroups.length === 1 ? 'album' : 'albumes'}
-            </span>
+        <section className={styles.introduction} id="presentacion">
+          <p className={styles.sectionNumber}>01</p>
+          <div>
+            <p className={styles.eyebrow}>El proyecto</p>
+            <h2>Historias propias.<br />Raíz oaxaqueña.<br />Una mirada actual.</h2>
           </div>
-          {releaseGroups.map((group) => (
-            <div className={styles.releaseGroup} key={group.id}>
-              <div className={styles.releaseGroupHead}>
-                <p>{group.title}</p>
-                <span>
-                  {group.releases.length} {group.releases.length === 1 ? 'cancion' : 'canciones'}
-                </span>
+          <p className={styles.introCopy}>{SITE_CONTENT.introduction}</p>
+        </section>
+
+        {activeRelease ? (
+          <section className={styles.featuredSection} id="lanzamiento">
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>Lanzamiento destacado</p>
+                <h2>Escucha Fragmentado</h2>
               </div>
-              {group.releases.map((release) => (
+              <p>{sortedReleases.length} lanzamientos disponibles</p>
+            </div>
+
+            <div className={styles.featuredRelease}>
+              <div className={styles.featuredArtwork}>
+                <Image
+                  src={activeRelease.cover}
+                  alt={`Portada de ${activeRelease.title}`}
+                  width={720}
+                  height={720}
+                  priority
+                  sizes="(max-width: 800px) 100vw, 50vw"
+                />
                 <button
-                  key={release.id}
                   type="button"
-                  className={`${styles.releaseChip} ${
-                    release.id === activeRelease.id ? styles.releaseChipActive : ''
-                  }`}
-                  onClick={() => setActiveReleaseId(release.id)}
+                  className={styles.audioButton}
+                  onClick={toggleAudio}
+                  disabled={!hasPreview}
+                  aria-label={hasPreview ? (isPlaying ? 'Pausar preview' : 'Reproducir preview') : 'Preview no disponible'}
                 >
-                  <Image src={release.cover} alt={release.title} width={54} height={54} />
-                  <span className={styles.releaseChipText}>
-                    <strong>{release.title}</strong>
-                    <small>{releaseAlbumById[release.albumId] ?? 'Lanzamiento'}</small>
-                  </span>
-                  <span className={styles.releaseChipMeta}>
-                    <em>{formatReleaseDate(release.releaseDate)}</em>
-                    <i>{release.badge}</i>
-                  </span>
+                  <FontAwesomeIcon icon={isPlaying ? faCirclePause : faPlayCircle} />
                 </button>
+              </div>
+
+              <div className={styles.featuredInfo}>
+                <div className={styles.releaseMeta}>
+                  <span>{activeRelease.badge}</span>
+                  <span>{activeAlbum?.title ?? 'Lanzamiento'}</span>
+                  <span>{formatReleaseDate(activeRelease.releaseDate)}</span>
+                </div>
+                <h3>{activeRelease.title}</h3>
+                <p>
+                  Canción de {artistName}, disponible en plataformas digitales
+                  {activeRelease.youtube ? ' y con video oficial' : ''}.
+                </p>
+                <audio ref={audioPlayer} src={activePreviewAudio || undefined} preload="none" />
+                {!hasPreview ? <p className={styles.previewNote}>Preview de audio no disponible para este lanzamiento.</p> : null}
+
+                <div className={styles.platformActions} aria-label="Plataformas disponibles">
+                  {(activeRelease.platforms ?? []).map((platform) => (
+                    <a
+                      key={`${activeRelease.id}-${platform.title}`}
+                      href={withTrackingParams(platform.link, activeRelease.id, `platform_${platform.title}`)}
+                      onClick={() => trackClick(`platform:${platform.title}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Image src={platform.icon} alt="" width={96} height={28} />
+                      <span>{platform.title}</span>
+                    </a>
+                  ))}
+                </div>
+
+                {activeRelease.youtube ? (
+                  <button type="button" className={styles.videoLinkButton} onClick={() => openVideo(activeRelease)}>
+                    Ver video oficial
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className={styles.catalogSection} id="musica">
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Discografía</p>
+              <h2>Canciones y álbumes</h2>
+            </div>
+            <p>Selecciona una canción para explorarla</p>
+          </div>
+
+          {releaseGroups.length ? releaseGroups.map((group) => (
+            <div className={styles.albumGroup} key={group.id}>
+              <div className={styles.albumHeading}>
+                <h3>{group.title}</h3>
+                <p>{group.year} · {group.releases.length} {group.releases.length === 1 ? 'canción' : 'canciones'}</p>
+              </div>
+              <div className={styles.releaseGrid}>
+                {group.releases.map((release) => (
+                  <button
+                    type="button"
+                    key={release.id}
+                    className={`${styles.releaseCard} ${release.id === activeRelease?.id ? styles.releaseCardActive : ''}`}
+                    onClick={() => selectRelease(release.id)}
+                    aria-label={`Ver detalles de ${release.title}`}
+                  >
+                    <span className={styles.releaseArtwork}>
+                      <Image
+                        src={release.cover}
+                        alt=""
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1000px) 33vw, 25vw"
+                      />
+                    </span>
+                    <span className={styles.releaseCardCopy}>
+                      <strong>{release.title}</strong>
+                      <small>{release.year || formatReleaseDate(release.releaseDate)}</small>
+                    </span>
+                    <span className={styles.releaseArrow} aria-hidden="true">↗</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )) : (
+            <p className={styles.emptyState}>El catálogo no está disponible en este momento.</p>
+          )}
+        </section>
+
+        <section className={styles.videoSection} id="videos">
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Audiovisual</p>
+              <h2>Videos oficiales</h2>
+            </div>
+            <p>Producción visual de cada lanzamiento</p>
+          </div>
+
+          {activeVideoId ? (
+            <div className={styles.videoPlayer}>
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1`}
+                title="Video de Fragmentado"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+              <button type="button" onClick={() => setActiveVideoId('')}>Cerrar video</button>
+            </div>
+          ) : null}
+
+          <div className={styles.videoGrid}>
+            {videoReleases.slice(0, 6).map((release) => {
+              const youtubeId = getYouTubeId(release.youtube);
+              return (
+                <button type="button" key={release.id} onClick={() => openVideo(release)}>
+                  <span className={styles.videoThumbnail}>
+                    <Image
+                      src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`}
+                      alt=""
+                      fill
+                      loading="lazy"
+                      sizes="(max-width: 760px) 100vw, 33vw"
+                    />
+                    <i aria-hidden="true">▶</i>
+                  </span>
+                  <strong>{release.title}</strong>
+                  <small>Video oficial</small>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className={styles.historySection} id="historia">
+          <div className={styles.historyImage}>
+            <Image
+              src="/DondeEmpieza.jpg"
+              alt="Arte del lanzamiento Donde Empieza y Termina de Fragmentado"
+              fill
+              loading="lazy"
+              sizes="(max-width: 800px) 100vw, 48vw"
+            />
+          </div>
+          <div className={styles.historyCopy}>
+            <p className={styles.eyebrow}>Historia</p>
+            <h2>Desde Oaxaca, con historias que piden escenario.</h2>
+            {SITE_CONTENT.history.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            <p className={styles.productionCredit}>{SITE_CONTENT.productionCredit}</p>
+          </div>
+        </section>
+
+        <section className={styles.liveSection} id="en-vivo">
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>En vivo</p>
+              <h2>Una propuesta adaptable a cada escenario</h2>
+            </div>
+            <a className={styles.primaryButton} href="#contrataciones">Solicitar información</a>
+          </div>
+          <div className={styles.liveLayout}>
+            <ul>
+              {SITE_CONTENT.liveHighlights.map((highlight) => <li key={highlight}>{highlight}</li>)}
+            </ul>
+            <div className={styles.visualArchive}>
+              {SITE_CONTENT.visualArchive.map((item) => (
+                <figure key={item.src}>
+                  <Image src={item.src} alt="" fill loading="lazy" sizes="(max-width: 760px) 33vw, 20vw" />
+                  <figcaption>{item.label}</figcaption>
+                </figure>
               ))}
             </div>
-          ))}
+          </div>
+        </section>
+
+        <section className={styles.pressSection} id="prensa">
+          <div className={styles.pressIntro}>
+            <p className={styles.eyebrow}>Festivales y promotores</p>
+            <h2>{SITE_CONTENT.promoterTitle}</h2>
+            <p>{SITE_CONTENT.promoterCopy}</p>
+            <a className={styles.secondaryButton} href="#videos">Ver videos</a>
+          </div>
+          <div className={styles.quickFacts}>
+            <h3>Press kit · datos rápidos</h3>
+            <dl>
+              {SITE_CONTENT.quickFacts.map(([label, value]) => (
+                <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+              ))}
+              <div><dt>Lanzamientos publicados</dt><dd>{sortedReleases.length}</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section className={styles.contactSection} id="contrataciones">
+          <div className={styles.contactIntro}>
+            <p className={styles.eyebrow}>Contrataciones</p>
+            <h2>{SITE_CONTENT.bookingTitle}</h2>
+            <p>{SITE_CONTENT.bookingCopy}</p>
+            {availableSocialLinks.length ? (
+              <div className={styles.socialLinks} aria-label="Redes sociales">
+                {availableSocialLinks.map(([network, url]) => (
+                  <a
+                    key={network}
+                    href={url}
+                    onClick={() => trackClick(`social:${network}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={SOCIAL_LABEL_MAP[network] ?? network}
+                    title={SOCIAL_LABEL_MAP[network] ?? network}
+                  >
+                    {SOCIAL_ICON_MAP[network] ? (
+                      <FontAwesomeIcon icon={SOCIAL_ICON_MAP[network]} aria-hidden="true" />
+                    ) : (
+                      <span aria-hidden="true">{network.slice(0, 2)}</span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <ContactForm />
         </section>
       </main>
 
       <footer className={styles.footer}>
-        <a href="http://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">
-          created by Yoots Music®
-        </a>
+        <div className={styles.footerBrand}>
+          <Image className={styles.footerMonogram} src={monogram} alt="" aria-hidden="true" />
+          <div>
+            <strong>{artistName}</strong>
+            <p>{SITE_CONTENT.slogan}</p>
+          </div>
+        </div>
+        <nav aria-label="Navegación del pie de página">
+          {SITE_CONTENT.nav.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
+        </nav>
+        <div className={styles.footerLegal}>
+          <p>© {new Date().getFullYear()} Fragmentado. Derechos reservados.</p>
+          <a href="https://www.yootsmusic.com" target="_blank" rel="noopener noreferrer">Producción · Yoots Music</a>
+        </div>
       </footer>
     </div>
   );

@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getAdmin } from '../../../../lib/server/content-store';
 import { setSessionCookie, verifyPassword } from '../../../../lib/server/admin-auth';
+import { checkRateLimit } from '../../../../lib/server/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
+  const rateLimit = await checkRateLimit(request, {
+    scope: 'admin-login',
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Demasiados intentos. Intenta nuevamente más tarde.' },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } },
+    );
+  }
+
   const admin = await getAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Aun no existe cuenta admin.' }, { status: 404 });

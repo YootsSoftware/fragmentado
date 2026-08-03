@@ -20,6 +20,7 @@ import DiscographyEditorSection from './components/DiscographyEditorSection';
 import DiscographySidebar from './components/DiscographySidebar';
 import AlbumModal from './components/AlbumModal';
 import FullscreenLoader from './components/FullscreenLoader';
+import PreSaveSection from './components/PreSaveSection';
 
 const emptyRelease = {
   id: '',
@@ -31,6 +32,18 @@ const emptyRelease = {
   cover: '',
   previewAudio: '',
   youtube: '',
+  platforms: [],
+};
+
+const emptyPreSave = {
+  id: '',
+  title: '',
+  artist: '',
+  releaseDate: '',
+  description: '',
+  cover: '',
+  background: '',
+  published: false,
   platforms: [],
 };
 
@@ -139,15 +152,15 @@ ChartJS.register(
   Legend,
 );
 
-const chartTextColor = '#c8d2df';
-const chartGridColor = 'rgba(122, 139, 162, 0.22)';
+const chartTextColor = '#c9c5ba';
+const chartGridColor = 'rgba(240, 237, 228, 0.13)';
 const channelPalette = [
-  'rgba(124, 174, 232, 0.8)',
-  'rgba(111, 211, 178, 0.8)',
-  'rgba(229, 146, 190, 0.8)',
-  'rgba(243, 190, 112, 0.8)',
-  'rgba(156, 168, 255, 0.8)',
-  'rgba(255, 130, 130, 0.8)',
+  'rgba(197, 163, 95, 0.86)',
+  'rgba(82, 122, 104, 0.86)',
+  'rgba(143, 48, 46, 0.86)',
+  'rgba(225, 215, 187, 0.78)',
+  'rgba(108, 117, 103, 0.82)',
+  'rgba(174, 109, 76, 0.82)',
 ];
 
 const barChartOptions = {
@@ -223,6 +236,7 @@ export default function AdminPage() {
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
+    setupSecret: '',
   });
   const [authError, setAuthError] = useState('');
   const [authSubmitting, setAuthSubmitting] = useState(false);
@@ -254,8 +268,21 @@ export default function AdminPage() {
   const [bulkDeleteByAlbum, setBulkDeleteByAlbum] = useState({});
   const [stats, setStats] = useState({});
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [preSaves, setPreSaves] = useState([]);
+  const [selectedPreSaveId, setSelectedPreSaveId] = useState('');
+  const [preSaveDraft, setPreSaveDraft] = useState(emptyPreSave);
+  const [preSaveIsNew, setPreSaveIsNew] = useState(true);
+  const [preSaveUploadingCover, setPreSaveUploadingCover] = useState(false);
+  const [preSaveUploadingBackground, setPreSaveUploadingBackground] = useState(false);
+  const [preSaveSaving, setPreSaveSaving] = useState(false);
+  const [preSaveError, setPreSaveError] = useState('');
+  const [preSaveMessage, setPreSaveMessage] = useState('');
   const [settingsDraft, setSettingsDraft] = useState({
     artistName: '',
+    hero: {
+      mediaType: 'youtube',
+      releaseId: 'donde-empieza-termina',
+    },
     socials: { ...EMPTY_SOCIALS },
   });
   const [spotifyEnv, setSpotifyEnv] = useState({
@@ -424,9 +451,15 @@ export default function AdminPage() {
     form.requestSubmit();
   }, []);
 
+  const navigateAdminSection = useCallback((section) => {
+    setActiveSection(section);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
+  }, []);
+
   const handleSelectRelease = useCallback((release) => {
     setIsManualNew(false);
     setSelectedAlbumId(release.albumId || '');
+    setExpandedAlbums(release.albumId ? { [release.albumId]: true } : {});
     setSelectedId(release.id);
     setDraft({
       ...release,
@@ -462,11 +495,9 @@ export default function AdminPage() {
       return list[0]?.id ?? '';
     });
     setExpandedAlbums((prev) => {
-      const next = { ...prev };
-      for (const album of list) {
-        if (typeof next[album.id] === 'undefined') next[album.id] = true;
-      }
-      return next;
+      const openAlbum = list.find((album) => prev[album.id]);
+      const openId = openAlbum?.id || list[0]?.id;
+      return openId ? { [openId]: true } : {};
     });
     if (!albumDraft.title && list.length) {
       setAlbumDraft({
@@ -483,6 +514,10 @@ export default function AdminPage() {
     const settings = data.settings ?? {};
     setSettingsDraft({
       artistName: String(settings.artistName ?? ''),
+      hero: {
+        mediaType: settings.hero?.mediaType === 'image' ? 'image' : 'youtube',
+        releaseId: String(settings.hero?.releaseId ?? 'donde-empieza-termina'),
+      },
       socials: {
         facebook: String(settings.socials?.facebook ?? ''),
         instagram: String(settings.socials?.instagram ?? ''),
@@ -504,6 +539,22 @@ export default function AdminPage() {
     setStats(data.stats ?? {});
   }, []);
 
+  const loadPreSaves = useCallback(async () => {
+    const response = await fetch('/api/admin/pre-saves', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    const list = data.preSaves ?? [];
+    setPreSaves(list);
+    setSelectedPreSaveId((current) => {
+      if (current && list.some((item) => item.id === current)) return current;
+      if (list[0]) {
+        setPreSaveDraft({ ...emptyPreSave, ...list[0], platforms: list[0].platforms ?? [] });
+        setPreSaveIsNew(false);
+      }
+      return list[0]?.id ?? '';
+    });
+  }, []);
+
   useEffect(() => {
     refreshSession();
   }, [refreshSession]);
@@ -514,6 +565,7 @@ export default function AdminPage() {
       loadStats();
       loadAlbums();
       loadSettings();
+      loadPreSaves();
     }
   }, [
     session.authenticated,
@@ -521,6 +573,7 @@ export default function AdminPage() {
     loadStats,
     loadAlbums,
     loadSettings,
+    loadPreSaves,
   ]);
 
   useEffect(() => {
@@ -604,6 +657,9 @@ export default function AdminPage() {
     setSelectedId('');
     setDraft(emptyRelease);
     setIsNew(true);
+    setPreSaves([]);
+    setSelectedPreSaveId('');
+    setPreSaveDraft(emptyPreSave);
     await refreshSession();
   };
 
@@ -633,21 +689,21 @@ export default function AdminPage() {
 
   const handleSearchSelect = useCallback(
     (result) => {
-      setActiveSection('discografia');
+      navigateAdminSection('discografia');
       setSearchQuery('');
       setIsSearchOpen(false);
 
       if (result.type === 'song') {
         const release = releases.find((item) => item.id === result.id);
         if (!release) return;
-        setExpandedAlbums((prev) => ({ ...prev, [release.albumId]: true }));
+        setExpandedAlbums(release.albumId ? { [release.albumId]: true } : {});
         handleSelectRelease(release);
         return;
       }
 
       if (result.type === 'album') {
         setSelectedAlbumId(result.id);
-        setExpandedAlbums((prev) => ({ ...prev, [result.id]: true }));
+        setExpandedAlbums({ [result.id]: true });
         const firstSong = releases
           .filter((release) => release.albumId === result.id)
           .sort((a, b) => String(b.releaseDate).localeCompare(String(a.releaseDate)))[0];
@@ -656,14 +712,11 @@ export default function AdminPage() {
         }
       }
     },
-    [releases, handleSelectRelease],
+    [releases, handleSelectRelease, navigateAdminSection],
   );
 
   const toggleAlbum = (albumId) => {
-    setExpandedAlbums((prev) => ({
-      ...prev,
-      [albumId]: !prev[albumId],
-    }));
+    setExpandedAlbums((prev) => (prev[albumId] ? {} : { [albumId]: true }));
   };
 
   const getPlatformLink = (platformId) => {
@@ -786,6 +839,150 @@ export default function AdminPage() {
     } finally {
       setUploadingCover(false);
       event.target.value = '';
+    }
+  };
+
+  const handleNewPreSave = () => {
+    setSelectedPreSaveId('');
+    setPreSaveIsNew(true);
+    setPreSaveDraft({ ...emptyPreSave, artist: globalArtistName });
+    setPreSaveError('');
+    setPreSaveMessage('');
+  };
+
+  const handleSelectPreSave = (campaign) => {
+    setSelectedPreSaveId(campaign.id);
+    setPreSaveIsNew(false);
+    setPreSaveDraft({
+      ...emptyPreSave,
+      ...campaign,
+      platforms: campaign.platforms ?? [],
+    });
+    setPreSaveError('');
+    setPreSaveMessage('');
+  };
+
+  const handlePreSaveCoverUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      setPreSaveUploadingCover(true);
+      const url = await uploadMedia(file);
+      setPreSaveDraft((current) => ({ ...current, cover: url }));
+      setPreSaveMessage('Portada lista para la campaña.');
+      setPreSaveError('');
+    } catch (error) {
+      setPreSaveError(error instanceof Error ? error.message : 'No se pudo subir la portada.');
+    } finally {
+      setPreSaveUploadingCover(false);
+      event.target.value = '';
+    }
+  };
+
+  const handlePreSaveBackgroundUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      setPreSaveUploadingBackground(true);
+      const url = await uploadMedia(file);
+      setPreSaveDraft((current) => ({ ...current, background: url }));
+      setPreSaveMessage('Fondo listo para la campaña.');
+      setPreSaveError('');
+    } catch (error) {
+      setPreSaveError(error instanceof Error ? error.message : 'No se pudo subir el fondo.');
+    } finally {
+      setPreSaveUploadingBackground(false);
+      event.target.value = '';
+    }
+  };
+
+  const handlePreSavePlatformChange = (platform, link) => {
+    setPreSaveDraft((current) => {
+      const platforms = [...(current.platforms ?? [])];
+      const index = platforms.findIndex((item) => item.id === platform.id);
+      const normalizedLink = String(link ?? '').trim();
+      if (!normalizedLink) {
+        if (index >= 0) platforms.splice(index, 1);
+      } else if (index >= 0) {
+        platforms[index] = { ...platform, link: normalizedLink };
+      } else {
+        platforms.push({ ...platform, link: normalizedLink });
+      }
+      return { ...current, platforms };
+    });
+  };
+
+  const handleSavePreSave = async (event) => {
+    event.preventDefault();
+    if (preSaveSaving) return;
+    setPreSaveSaving(true);
+    setPreSaveError('');
+    setPreSaveMessage('');
+
+    try {
+      const existingIds = new Set(preSaves.map((item) => item.id));
+      const resolvedId = preSaveIsNew
+        ? ensureUniqueId(slugify(preSaveDraft.title), existingIds)
+        : preSaveDraft.id;
+      if (!resolvedId) throw new Error('Escribe el título de la campaña.');
+
+      const response = await fetch('/api/admin/pre-saves', {
+        method: preSaveIsNew ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          preSave: {
+            ...preSaveDraft,
+            id: resolvedId,
+            artist: globalArtistName || 'Fragmentado',
+          },
+        }),
+      });
+      const data = await readJsonSafe(response);
+      if (!response.ok) {
+        throw new Error(getErrorMessage(response, data, 'No se pudo guardar la campaña.'));
+      }
+
+      const list = data.preSaves ?? [];
+      const saved = list.find((item) => item.id === resolvedId);
+      setPreSaves(list);
+      setSelectedPreSaveId(resolvedId);
+      setPreSaveIsNew(false);
+      if (saved) setPreSaveDraft({ ...emptyPreSave, ...saved, platforms: saved.platforms ?? [] });
+      setPreSaveMessage(preSaveDraft.published ? 'Campaña publicada.' : 'Borrador guardado.');
+    } catch (error) {
+      setPreSaveError(error instanceof Error ? error.message : 'No se pudo guardar la campaña.');
+    } finally {
+      setPreSaveSaving(false);
+    }
+  };
+
+  const handleDeletePreSave = async () => {
+    if (!selectedPreSaveId || preSaveSaving) return;
+    if (!window.confirm(`¿Eliminar la campaña ${preSaveDraft.title}?`)) return;
+
+    setPreSaveSaving(true);
+    setPreSaveError('');
+    try {
+      const response = await fetch(
+        `/api/admin/pre-saves?id=${encodeURIComponent(selectedPreSaveId)}`,
+        { method: 'DELETE' },
+      );
+      const data = await readJsonSafe(response);
+      if (!response.ok) {
+        throw new Error(getErrorMessage(response, data, 'No se pudo eliminar la campaña.'));
+      }
+      const list = data.preSaves ?? [];
+      setPreSaves(list);
+      if (list[0]) {
+        handleSelectPreSave(list[0]);
+      } else {
+        handleNewPreSave();
+      }
+      setPreSaveMessage('Campaña eliminada.');
+    } catch (error) {
+      setPreSaveError(error instanceof Error ? error.message : 'No se pudo eliminar la campaña.');
+    } finally {
+      setPreSaveSaving(false);
     }
   };
 
@@ -993,6 +1190,10 @@ export default function AdminPage() {
     const payload = {
       settings: {
         artistName: globalArtistName,
+        hero: {
+          mediaType: settingsDraft.hero?.mediaType === 'image' ? 'image' : 'youtube',
+          releaseId: String(settingsDraft.hero?.releaseId ?? '').trim(),
+        },
         socials: {
           facebook: String(settingsDraft.socials?.facebook ?? '').trim(),
           instagram: String(settingsDraft.socials?.instagram ?? '').trim(),
@@ -1016,6 +1217,10 @@ export default function AdminPage() {
     const settings = data.settings ?? payload.settings;
     setSettingsDraft({
       artistName: String(settings.artistName ?? globalArtistName),
+      hero: {
+        mediaType: settings.hero?.mediaType === 'image' ? 'image' : 'youtube',
+        releaseId: String(settings.hero?.releaseId ?? 'donde-empieza-termina'),
+      },
       socials: {
         facebook: String(settings.socials?.facebook ?? ''),
         instagram: String(settings.socials?.instagram ?? ''),
@@ -1548,8 +1753,8 @@ export default function AdminPage() {
         {
           label: 'Clics',
           data: top.map((item) => item.total),
-          backgroundColor: 'rgba(124, 174, 232, 0.72)',
-          borderColor: 'rgba(157, 198, 245, 0.95)',
+          backgroundColor: 'rgba(197, 163, 95, 0.72)',
+          borderColor: 'rgba(221, 194, 139, 0.96)',
           borderWidth: 1,
           borderRadius: 6,
         },
@@ -1564,8 +1769,8 @@ export default function AdminPage() {
         {
           label: 'Clics',
           data: top.map((item) => item.total),
-          backgroundColor: 'rgba(111, 171, 241, 0.74)',
-          borderColor: 'rgba(173, 211, 255, 0.95)',
+          backgroundColor: 'rgba(197, 163, 95, 0.74)',
+          borderColor: 'rgba(221, 194, 139, 0.96)',
           borderWidth: 1,
           borderRadius: 7,
           maxBarThickness: 42,
@@ -1659,29 +1864,31 @@ export default function AdminPage() {
 
   return (
     <main className={styles.shell}>
-      <AdminNavbar
-        globalArtistName={globalArtistName}
-        searchRef={searchRef}
-        searchQuery={searchQuery}
-        isSearchOpen={isSearchOpen}
-        searchResults={searchResults}
-        activeSection={activeSection}
-        sessionUsername={session.username}
-        onSearchChange={(value) => {
-          setSearchQuery(value);
-          setIsSearchOpen(true);
-        }}
-        onSearchFocus={() => setIsSearchOpen(true)}
-        onSearchSelect={handleSearchSelect}
-        onSetActiveSection={setActiveSection}
-        onLogout={handleLogout}
-      />
+      <div className={styles.adminLayout}>
+        <AdminNavbar
+          globalArtistName={globalArtistName}
+          searchRef={searchRef}
+          searchQuery={searchQuery}
+          isSearchOpen={isSearchOpen}
+          searchResults={searchResults}
+          activeSection={activeSection}
+          sessionUsername={session.username}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setIsSearchOpen(true);
+          }}
+          onSearchFocus={() => setIsSearchOpen(true)}
+          onSearchSelect={handleSearchSelect}
+          onSetActiveSection={navigateAdminSection}
+          onLogout={handleLogout}
+        />
 
-      <section
-        className={`${styles.panel} ${
-          activeSection === 'discografia' ? '' : styles.panelSingle
-        }`}
-      >
+        <div className={styles.adminWorkspace}>
+          <section
+            className={`${styles.panel} ${
+              activeSection === 'discografia' ? '' : styles.panelSingle
+            }`}
+          >
         {activeSection === 'discografia' ? (
           <DiscographySidebar
             manualMode={manualMode}
@@ -1708,6 +1915,7 @@ export default function AdminPage() {
             <DashboardSection
               albums={albums}
               releases={releases}
+              preSaves={preSaves}
               totalGlobalClicks={totalGlobalClicks}
               topChannel={topChannel}
               releaseStatsSummary={releaseStatsSummary}
@@ -1716,14 +1924,14 @@ export default function AdminPage() {
               latestReleaseItem={latestReleaseItem}
               nextReleaseItem={nextReleaseItem}
               mostClickedRelease={mostClickedRelease}
-              onSetActiveSection={setActiveSection}
+              onSetActiveSection={navigateAdminSection}
             />
           ) : activeSection === 'discografia' ? (
             <DiscographyEditorSection
               isNew={isNew}
               selectedRelease={selectedRelease}
               showManualEditor={showManualEditor}
-              onSetActiveSection={setActiveSection}
+              onSetActiveSection={navigateAdminSection}
               toggleManualMode={toggleManualMode}
               handleSave={handleSave}
               hasCover={hasCover}
@@ -1745,6 +1953,31 @@ export default function AdminPage() {
               message={message}
               handleDelete={handleDelete}
             />
+          ) : activeSection === 'pre-save' ? (
+            <PreSaveSection
+              preSaves={preSaves}
+              draft={preSaveDraft}
+              isNew={preSaveIsNew}
+              selectedId={selectedPreSaveId}
+              uploadingCover={preSaveUploadingCover}
+              uploadingBackground={preSaveUploadingBackground}
+              saving={preSaveSaving}
+              error={preSaveError}
+              message={preSaveMessage}
+              onNew={handleNewPreSave}
+              onSelect={handleSelectPreSave}
+              onChange={(field, value) =>
+                setPreSaveDraft((current) => ({ ...current, [field]: value }))
+              }
+              onCoverUpload={handlePreSaveCoverUpload}
+              onBackgroundUpload={handlePreSaveBackgroundUpload}
+              onBackgroundClear={() =>
+                setPreSaveDraft((current) => ({ ...current, background: '' }))
+              }
+              onPlatformChange={handlePreSavePlatformChange}
+              onSave={handleSavePreSave}
+              onDelete={handleDeletePreSave}
+            />
           ) : activeSection === 'estadisticas' ? (
             <StatsSection
               totalGlobalClicks={totalGlobalClicks}
@@ -1765,6 +1998,7 @@ export default function AdminPage() {
               onUpdateAccount={handleUpdateAccount}
               settingsDraft={settingsDraft}
               setSettingsDraft={setSettingsDraft}
+              releases={releases}
               spotifyEnv={spotifyEnv}
               settingsError={settingsError}
               settingsMessage={settingsMessage}
@@ -1787,19 +2021,21 @@ export default function AdminPage() {
               resolveAlbumForSpotifySong={resolveAlbumForSpotifySong}
             />
           )}
-        </section>
-      </section>
+            </section>
+          </section>
+          {adminFooter}
+        </div>
+      </div>
       <AlbumModal
-        showAlbumModal={showAlbumModal}
-        onClose={() => setShowAlbumModal(false)}
-        albumModalMode={albumModalMode}
-        albumDraft={albumDraft}
-        setAlbumDraft={setAlbumDraft}
-        YEAR_OPTIONS={YEAR_OPTIONS}
-        onSaveAlbum={handleSaveAlbum}
-      />
-      <FullscreenLoader message={isFullscreenLoading ? fullscreenLoadingMessage : ''} />
-      {adminFooter}
+          showAlbumModal={showAlbumModal}
+          onClose={() => setShowAlbumModal(false)}
+          albumModalMode={albumModalMode}
+          albumDraft={albumDraft}
+          setAlbumDraft={setAlbumDraft}
+          YEAR_OPTIONS={YEAR_OPTIONS}
+          onSaveAlbum={handleSaveAlbum}
+        />
+        <FullscreenLoader message={isFullscreenLoading ? fullscreenLoadingMessage : ''} />
     </main>
   );
 }

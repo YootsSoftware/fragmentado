@@ -1,5 +1,7 @@
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleExclamation, faLock, faUser } from '@fortawesome/free-solid-svg-icons';
+import monogram from '../../assets/Monograma.avif';
 import styles from '../page.module.css';
 
 export default function AuthCard({
@@ -16,16 +18,16 @@ export default function AuthCard({
   return (
     <section className={`${styles.card} ${styles.authShellCard}`}>
       <aside className={styles.authPromoPane} aria-hidden="true">
-        <div className={styles.authPromoGlow} />
-        <p className={styles.authPromoKicker}>Yoots Music</p>
-        <h2 className={styles.authPromoTitle}>Controla tus lanzamientos en un solo panel</h2>
+        <Image className={styles.authMonogram} src={monogram} alt="" />
+        <p className={styles.authPromoKicker}>Fragmentado</p>
+        <h2 className={styles.authPromoTitle}>Relatando Historias</h2>
         <p className={styles.authPromoText}>
-          Administra discografia, sincroniza Spotify y publica cambios en tiempo real.
+          Lanzamientos, campañas y contenido del sitio oficial.
         </p>
       </aside>
 
       <div className={styles.authFormPane}>
-        <span className={styles.authEyebrow}>fg-admin</span>
+        <span className={styles.authEyebrow}>Panel editorial</span>
         <h1>{isBootstrap ? 'Crear cuenta inicial' : 'Acceso de administrador'}</h1>
         <p className={styles.authSubtitle}>
           {isBootstrap
@@ -62,6 +64,24 @@ export default function AuthCard({
               />
             </span>
           </label>
+          {isBootstrap ? (
+            <label className={styles.authField}>
+              Clave de instalación
+              <span className={styles.authInputWrap}>
+                <FontAwesomeIcon icon={faLock} aria-hidden="true" />
+                <input
+                  className={styles.authInput}
+                  type="password"
+                  value={credentials.setupSecret}
+                  onChange={(event) => onChangeCredentials('setupSecret', event.target.value)}
+                  required
+                  minLength={32}
+                  disabled={authSubmitting}
+                  autoComplete="new-password"
+                />
+              </span>
+            </label>
+          ) : null}
           {authError ? (
             <div className={styles.authErrorBox} role="alert" aria-live="assertive">
               <FontAwesomeIcon icon={faCircleExclamation} aria-hidden="true" />

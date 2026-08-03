@@ -1,15 +1,23 @@
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  faBullhorn,
+  faChartLine,
+  faCompactDisc,
+  faGear,
+  faHouse,
   faMagnifyingGlass,
   faRightFromBracket,
 } from '@fortawesome/free-solid-svg-icons';
+import monogram from '../../assets/Monograma.avif';
 import styles from '../page.module.css';
 
 const sections = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'discografia', label: 'Discografia' },
-  { id: 'estadisticas', label: 'Estadisticas' },
-  { id: 'configuracion', label: 'Configuracion' },
+  { id: 'dashboard', label: 'Inicio', icon: faHouse },
+  { id: 'discografia', label: 'Lanzamientos', icon: faCompactDisc },
+  { id: 'pre-save', label: 'Pre-save', icon: faBullhorn },
+  { id: 'estadisticas', label: 'Estadísticas', icon: faChartLine },
+  { id: 'configuracion', label: 'Ajustes', icon: faGear },
 ];
 
 export default function AdminNavbar({
@@ -27,15 +35,21 @@ export default function AdminNavbar({
   onLogout,
 }) {
   return (
-    <header className={styles.navbar}>
+    <aside className={styles.navbar}>
+      <div className={styles.adminBrand}>
+        <Image src={monogram} alt="" aria-hidden="true" />
+        <div>
+          <strong>{globalArtistName || 'Fragmentado'}</strong>
+          <span>Panel editorial</span>
+        </div>
+      </div>
       <div className={styles.navLead}>
-        <div className={styles.navBrand}>{globalArtistName || 'sin artista'}</div>
         <div className={styles.navSearchWrap} ref={searchRef}>
           <label className={styles.navSearch} aria-label="Buscar">
             <FontAwesomeIcon icon={faMagnifyingGlass} />
             <input
               type="search"
-              placeholder="Buscar cancion o disco"
+              placeholder="Buscar lanzamiento"
               value={searchQuery}
               onChange={(event) => onSearchChange(event.target.value)}
               onFocus={onSearchFocus}
@@ -73,6 +87,7 @@ export default function AdminNavbar({
             className={activeSection === section.id ? styles.tabActive : styles.tab}
             onClick={() => onSetActiveSection(section.id)}
           >
+            <FontAwesomeIcon icon={section.icon} aria-hidden="true" />
             {section.label}
           </button>
         ))}
@@ -94,6 +109,9 @@ export default function AdminNavbar({
           <FontAwesomeIcon icon={faRightFromBracket} />
         </button>
       </div>
-    </header>
+      <a className={styles.viewSiteLink} href="/" target="_blank" rel="noopener noreferrer">
+        Ver sitio oficial ↗
+      </a>
+    </aside>
   );
 }

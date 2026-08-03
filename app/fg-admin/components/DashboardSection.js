@@ -4,6 +4,7 @@ import styles from '../page.module.css';
 export default function DashboardSection({
   albums,
   releases,
+  preSaves,
   totalGlobalClicks,
   topChannel,
   releaseStatsSummary,
@@ -16,9 +17,10 @@ export default function DashboardSection({
 }) {
   return (
     <>
-      <h2>Dashboard</h2>
+      <p className={styles.sectionEyebrow}>Fragmentado</p>
+      <h2>Inicio</h2>
       <p className={styles.editorHint}>
-        Resumen general de actividad y estado de tu catalogo.
+        Estado del sitio, próximos lanzamientos y actividad del catálogo.
       </p>
 
       <section className={styles.dashboardGrid}>
@@ -31,12 +33,12 @@ export default function DashboardSection({
           <strong>{releases.length}</strong>
         </article>
         <article className={styles.dashboardStatCard}>
-          <p>Clics totales</p>
-          <strong>{totalGlobalClicks}</strong>
+          <p>Campañas pre-save</p>
+          <strong>{preSaves.filter((item) => item.published).length}</strong>
         </article>
         <article className={styles.dashboardStatCard}>
-          <p>Canal mas fuerte</p>
-          <strong>{topChannel?.channel || 'Sin datos'}</strong>
+          <p>Clics totales</p>
+          <strong>{totalGlobalClicks}</strong>
         </article>
       </section>
 
@@ -92,13 +94,14 @@ export default function DashboardSection({
 
       <section className={styles.dashboardGrid}>
         <article className={styles.dashboardCard}>
-          <h3>Rendimiento top</h3>
+          <h3>Rendimiento</h3>
           {mostClickedRelease ? (
             <div className={styles.dashboardInfoRows}>
               <p>
                 <strong>{mostClickedRelease.title}</strong>
               </p>
               <p>{mostClickedRelease.total} clics acumulados</p>
+              <p>Canal principal: {topChannel?.channel || 'Sin datos'}</p>
             </div>
           ) : (
             <p className={styles.inlineNote}>Aun no hay clics registrados.</p>
@@ -108,7 +111,10 @@ export default function DashboardSection({
           <h3>Acciones rapidas</h3>
           <div className={styles.actions}>
             <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('discografia')}>
-              Editar discografia
+              Administrar lanzamientos
+            </button>
+            <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('pre-save')}>
+              Crear pre-save
             </button>
             <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('configuracion')}>
               Importar desde Spotify

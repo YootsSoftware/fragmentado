@@ -29,6 +29,7 @@ export default function DiscographyEditorSection({
 }) {
   return (
     <>
+      <p className={styles.sectionEyebrow}>Catálogo público</p>
       <h2>{isNew ? 'Nuevo lanzamiento' : `Editar: ${selectedRelease?.title ?? ''}`}</h2>
       <p className={styles.editorHint}>
         Edita los datos del lanzamiento y guarda para reflejar cambios en el sitio.
@@ -79,7 +80,7 @@ export default function DiscographyEditorSection({
                 <input
                   className={styles.hiddenInput}
                   type="file"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept="image/png,image/jpeg,image/webp,image/avif"
                   onChange={handleCoverUpload}
                 />
               </label>

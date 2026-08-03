@@ -3,6 +3,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare } from '@fortawesome/free-solid-svg-icons';
 import styles from '../page.module.css';
 
+const formatReleaseDate = (value) => {
+  if (!value) return 'Sin fecha';
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+};
+
 export default function DiscographySidebar({
   manualMode,
   toggleManualMode,
@@ -33,9 +44,8 @@ export default function DiscographySidebar({
             aria-label={manualMode ? 'Ocultar modo manual' : 'Activar modo manual'}
             title={manualMode ? 'Ocultar modo manual' : 'Activar modo manual'}
           >
-            <span className={styles.selectionToggleIcon} aria-hidden="true">
-              {manualMode ? '✎' : '⌁'}
-            </span>
+            <span className={styles.selectionToggleIcon} aria-hidden="true">+</span>
+            <span>{manualMode ? 'Manual activo' : 'Agregar manual'}</span>
           </button>
           <button
             type="button"
@@ -45,8 +55,9 @@ export default function DiscographySidebar({
             title={bulkSelectMode ? 'Ocultar seleccion multiple' : 'Activar seleccion multiple'}
           >
             <span className={styles.selectionToggleIcon} aria-hidden="true">
-              {bulkSelectMode ? '✓' : '☷'}
+              {bulkSelectMode ? '✓' : '□'}
             </span>
+            <span>{bulkSelectMode ? 'Seleccionando' : 'Seleccionar'}</span>
           </button>
         </div>
       </div>
@@ -56,7 +67,10 @@ export default function DiscographySidebar({
       </button>
       <div className={styles.tree}>
         {releasesByAlbum.map(({ album, releases: albumReleases }) => (
-          <section className={styles.treeAlbum} key={album.id}>
+          <section
+            className={`${styles.treeAlbum} ${expandedAlbums[album.id] ? styles.treeAlbumOpen : ''}`}
+            key={album.id}
+          >
             <div className={styles.treeAlbumHeadRow}>
               <button
                 type="button"
@@ -67,12 +81,17 @@ export default function DiscographySidebar({
                 }}
               >
                 <span className={styles.treeAlbumTitleWrap}>
-                  <span className={styles.treeAlbumGlyph}>◌</span>
-                  <span className={styles.treeAlbumTitle}>{album.title}</span>
+                  <span className={styles.treeAlbumGlyph} aria-hidden="true" />
+                  <span className={styles.treeAlbumTitleGroup}>
+                    <small>Disco</small>
+                    <span className={styles.treeAlbumTitle}>{album.title}</span>
+                  </span>
                 </span>
                 <span className={styles.treeAlbumMeta}>
-                  <span className={styles.treeAlbumCount}>{albumReleases.length}</span>
-                  {expandedAlbums[album.id] ? '▾' : '▸'}
+                  <span className={styles.treeAlbumCount}>
+                    {albumReleases.length} {albumReleases.length === 1 ? 'canción' : 'canciones'}
+                  </span>
+                  <span aria-hidden="true">{expandedAlbums[album.id] ? '−' : '+'}</span>
                 </span>
               </button>
               <button
@@ -133,7 +152,7 @@ export default function DiscographySidebar({
                           <span className={styles.songTitleRow}>
                             <strong>{release.title}</strong>
                           </span>
-                          <small>{release.releaseDate}</small>
+                          <small>{formatReleaseDate(release.releaseDate)}</small>
                         </span>
                       </button>
                     </div>
@@ -155,7 +174,7 @@ export default function DiscographySidebar({
                         <span className={styles.songTitleRow}>
                           <strong>{release.title}</strong>
                         </span>
-                        <small>{release.releaseDate}</small>
+                        <small>{formatReleaseDate(release.releaseDate)}</small>
                       </span>
                     </button>
                   ),
