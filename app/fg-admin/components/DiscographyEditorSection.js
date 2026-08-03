@@ -1,4 +1,6 @@
 import Image from 'next/image';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons';
 import styles from '../page.module.css';
 
 export default function DiscographyEditorSection({
@@ -72,10 +74,11 @@ export default function DiscographyEditorSection({
               )}
 
               <label className={hasCover ? styles.coverOverlayButton : styles.coverAddButton}>
+                <FontAwesomeIcon icon={faArrowUpFromBracket} aria-hidden="true" />
                 {uploadingCover
                   ? 'Subiendo...'
                   : hasCover
-                    ? 'Reemplazar portada'
+                    ? 'Cambiar portada'
                     : 'Agregar portada'}
                 <input
                   className={styles.hiddenInput}
@@ -85,7 +88,13 @@ export default function DiscographyEditorSection({
                 />
               </label>
             </div>
-            {draft.cover ? <span className={styles.inlineNote}>Actual: {draft.cover}</span> : null}
+            {draft.cover ? (
+              <span className={styles.coverSource}>
+                {draft.cover.includes('i.scdn.co')
+                  ? 'Portada sincronizada con Spotify'
+                  : 'Portada personalizada'}
+              </span>
+            ) : null}
           </section>
 
           <div className={styles.grid}>

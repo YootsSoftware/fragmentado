@@ -5,6 +5,7 @@ export default function DashboardSection({
   albums,
   releases,
   preSaves,
+  newInquiryCount,
   totalGlobalClicks,
   topChannel,
   releaseStatsSummary,
@@ -14,7 +15,31 @@ export default function DashboardSection({
   nextReleaseItem,
   mostClickedRelease,
   onSetActiveSection,
+  onOpenReleaseItem,
+  onCreateCampaign,
+  onOpenSpotify,
 }) {
+  const renderReleaseDetails = (item) => (
+    <div className={styles.dashboardInfoRows}>
+      <p>
+        <strong>{item.title}</strong>
+      </p>
+      <p>{item.releaseDate}</p>
+      <p>
+        {item._source === 'campaign'
+          ? 'Campaña publicada'
+          : `Disco: ${albums.find((album) => album.id === item.albumId)?.title || 'Sin disco'}`}
+      </p>
+      <button
+        type="button"
+        className={styles.dashboardTextAction}
+        onClick={() => onOpenReleaseItem(item)}
+      >
+        Administrar
+      </button>
+    </div>
+  );
+
   return (
     <>
       <p className={styles.sectionEyebrow}>Fragmentado</p>
@@ -25,15 +50,15 @@ export default function DashboardSection({
 
       <section className={styles.dashboardGrid}>
         <article className={styles.dashboardStatCard}>
-          <p>Total de discos</p>
-          <strong>{albums.length}</strong>
+          <p>Solicitudes nuevas</p>
+          <strong>{newInquiryCount}</strong>
         </article>
         <article className={styles.dashboardStatCard}>
           <p>Total de canciones</p>
           <strong>{releases.length}</strong>
         </article>
         <article className={styles.dashboardStatCard}>
-          <p>Campañas pre-save</p>
+          <p>Campañas de lanzamiento</p>
           <strong>{preSaves.filter((item) => item.published).length}</strong>
         </article>
         <article className={styles.dashboardStatCard}>
@@ -59,16 +84,7 @@ export default function DashboardSection({
         <article className={styles.dashboardCard}>
           <h3>Ultimo lanzamiento</h3>
           {latestReleaseItem ? (
-            <div className={styles.dashboardInfoRows}>
-              <p>
-                <strong>{latestReleaseItem.title}</strong>
-              </p>
-              <p>{latestReleaseItem.releaseDate}</p>
-              <p>
-                Disco:{' '}
-                {albums.find((album) => album.id === latestReleaseItem.albumId)?.title || 'Sin disco'}
-              </p>
-            </div>
+            renderReleaseDetails(latestReleaseItem)
           ) : (
             <p className={styles.inlineNote}>Aun no hay lanzamientos.</p>
           )}
@@ -76,16 +92,7 @@ export default function DashboardSection({
         <article className={styles.dashboardCard}>
           <h3>Proximo lanzamiento</h3>
           {nextReleaseItem ? (
-            <div className={styles.dashboardInfoRows}>
-              <p>
-                <strong>{nextReleaseItem.title}</strong>
-              </p>
-              <p>{nextReleaseItem.releaseDate}</p>
-              <p>
-                Disco:{' '}
-                {albums.find((album) => album.id === nextReleaseItem.albumId)?.title || 'Sin disco'}
-              </p>
-            </div>
+            renderReleaseDetails(nextReleaseItem)
           ) : (
             <p className={styles.inlineNote}>No hay lanzamientos programados.</p>
           )}
@@ -113,11 +120,14 @@ export default function DashboardSection({
             <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('discografia')}>
               Administrar lanzamientos
             </button>
-            <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('pre-save')}>
-              Crear pre-save
+            <button type="button" className={styles.buttonInfo} onClick={onCreateCampaign}>
+              Crear campaña
             </button>
-            <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('configuracion')}>
+            <button type="button" className={styles.buttonInfo} onClick={onOpenSpotify}>
               Importar desde Spotify
+            </button>
+            <button type="button" className={styles.buttonInfo} onClick={() => onSetActiveSection('contrataciones')}>
+              Ver contrataciones
             </button>
             <button type="button" className={styles.buttonNeutral} onClick={() => onSetActiveSection('estadisticas')}>
               Ver estadisticas

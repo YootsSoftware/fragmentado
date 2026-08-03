@@ -4,6 +4,7 @@ import {
   faBullhorn,
   faChartLine,
   faCompactDisc,
+  faEnvelopeOpenText,
   faGear,
   faHouse,
   faMagnifyingGlass,
@@ -15,7 +16,8 @@ import styles from '../page.module.css';
 const sections = [
   { id: 'dashboard', label: 'Inicio', icon: faHouse },
   { id: 'discografia', label: 'Lanzamientos', icon: faCompactDisc },
-  { id: 'pre-save', label: 'Pre-save', icon: faBullhorn },
+  { id: 'pre-save', label: 'Lanzamiento', icon: faBullhorn },
+  { id: 'contrataciones', label: 'Contrataciones', icon: faEnvelopeOpenText },
   { id: 'estadisticas', label: 'Estadísticas', icon: faChartLine },
   { id: 'configuracion', label: 'Ajustes', icon: faGear },
 ];
@@ -28,6 +30,7 @@ export default function AdminNavbar({
   searchResults,
   activeSection,
   sessionUsername,
+  newInquiryCount,
   onSearchChange,
   onSearchFocus,
   onSearchSelect,
@@ -89,6 +92,11 @@ export default function AdminNavbar({
           >
             <FontAwesomeIcon icon={section.icon} aria-hidden="true" />
             {section.label}
+            {section.id === 'contrataciones' && newInquiryCount > 0 ? (
+              <span className={styles.navCount} aria-label={`${newInquiryCount} solicitudes nuevas`}>
+                {newInquiryCount > 99 ? '99+' : newInquiryCount}
+              </span>
+            ) : null}
           </button>
         ))}
       </nav>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getMongoCollection } from '../../../lib/server/mongo-client';
 import { checkRateLimit } from '../../../lib/server/rate-limit';
+import { sendContactNotification } from '../../../lib/server/contact-notification';
 
 const MAX_LENGTHS = {
   name: 100,
@@ -65,11 +66,26 @@ export async function POST(request) {
   try {
     const collection = await getMongoCollection('contact_requests');
     await collection.createIndex({ createdAt: -1 });
-    await collection.insertOne({
+    const createdAt = new Date();
+    const result = await collection.insertOne({
       ...inquiry,
       status: 'new',
-      createdAt: new Date(),
+      createdAt,
     });
+
+    const notification = await sendContactNotification(inquiry);
+    await collection.updateOne(
+      { _id: result.insertedId },
+      {
+        $set: {
+          notification: {
+            sent: notification.sent,
+            reason: notification.reason,
+            attemptedAt: new Date(),
+          },
+        },
+      },
+    ).catch(() => null);
 
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch {

@@ -27,10 +27,20 @@
 
 .wordmark {
   color: var(--paper);
-  font-family: copasetic, Inter, sans-serif;
-  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: copasetic, var(--font-manrope), sans-serif;
+  font-size: 1rem;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.headerMonogram {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .siteLink,
@@ -47,9 +57,15 @@
   min-height: calc(100svh - 1.5rem);
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   overflow: hidden;
   background: #090a0a;
+}
+
+.moreSection,
+.footer {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 720px;
 }
 
 .heroImage {
@@ -72,11 +88,10 @@
   z-index: 2;
   width: min(92%, 1240px);
   margin: 0 auto;
-  padding: 9rem 0 7vh;
+  padding: 8rem 0 3rem;
 }
 
-.eyebrow,
-.sectionHeading p {
+.eyebrow {
   margin: 0;
   color: var(--gold);
   font-size: 0.72rem;
@@ -86,11 +101,11 @@
 
 .heroContent h1 {
   max-width: 980px;
-  margin: 0.4rem 0 0;
-  font-family: copasetic, Inter, sans-serif;
-  font-size: 7rem;
-  font-weight: 400;
-  line-height: 0.86;
+  margin: 0.5rem 0 0;
+  font-family: inherit;
+  font-size: 6.25rem;
+  font-weight: 700;
+  line-height: 0.92;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
@@ -160,12 +175,23 @@
   padding: 6rem 0;
 }
 
-.sectionHeading h2 {
-  margin: 0.3rem 0 2.5rem;
-  font-family: copasetic, Inter, sans-serif;
-  font-size: 4rem;
+.sectionHeading p {
+  margin: 0;
+  font-family: copasetic, var(--font-manrope), sans-serif;
+  color: var(--paper);
+  font-size: 3.4rem;
   font-weight: 400;
-  line-height: 0.95;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sectionHeading h2 {
+  margin: 0.65rem 0 2.5rem;
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.2;
   text-transform: uppercase;
 }
 
@@ -183,15 +209,13 @@
 .compactLinks a { border: 1px solid var(--line); border-radius: 4px; color: var(--paper); padding: 0.6rem 0.75rem; font-size: 0.74rem; }
 
 .signature {
-  min-height: 220px;
+  min-height: 160px;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
-.signature img { width: 110px; height: 110px; object-fit: contain; }
 .signature p { max-width: 42ch; color: var(--muted); font-size: 1.1rem; }
 
 .footer {
@@ -222,23 +246,26 @@
 .emptyContent { text-align: center; display: grid; justify-items: center; }
 .monogram { width: 140px; height: 140px; object-fit: contain; }
 .emptyContent p { margin: 1rem 0 0; color: var(--gold); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
-.emptyContent h1 { margin: 0.25rem 0 1.4rem; font-family: copasetic, Inter, sans-serif; font-size: 5rem; font-weight: 400; text-transform: uppercase; }
+.emptyContent h1 { margin: 0.35rem 0 1.4rem; font-family: inherit; font-size: 4.4rem; font-weight: 700; line-height: 0.95; text-transform: uppercase; }
 
 @media (max-width: 760px) {
   .header { height: 66px; padding: 0 1rem; }
+  .wordmark { font-size: 0.92rem; }
+  .headerMonogram { width: 29px; height: 29px; }
   .hero { min-height: calc(100svh - 1rem); }
   .heroShade { background: linear-gradient(180deg, rgba(4, 5, 5, 0.3), rgba(4, 5, 5, 0.88) 54%, rgba(4, 5, 5, 0.98)); }
-  .heroContent { width: calc(100% - 2rem); padding: 7rem 0 4.5rem; }
-  .heroContent h1 { font-size: 4.2rem; }
+  .heroContent { width: calc(100% - 2rem); padding: 6.5rem 0 2.5rem; }
+  .heroContent h1 { font-size: 3.45rem; line-height: 0.96; }
   .description { font-size: 0.86rem; }
   .platforms { grid-template-columns: 1fr; }
   .platforms a:nth-child(odd) { border-right: 0; }
   .scrollCue { display: none; }
   .moreSection { width: calc(100% - 2rem); padding: 4rem 0; }
-  .sectionHeading h2 { font-size: 3rem; }
+  .sectionHeading p { font-size: 2.65rem; }
+  .sectionHeading h2 { font-size: 1rem; }
   .campaignGrid { grid-template-columns: 1fr; }
-  .signature { align-items: flex-start; flex-direction: column; padding: 2rem 0; }
+  .signature { min-height: 130px; }
   .footer { width: calc(100% - 2rem); flex-direction: column; }
   .emptyPage > .wordmark { left: 1rem; }
-  .emptyContent h1 { font-size: 3.6rem; }
+  .emptyContent h1 { font-size: 3rem; }
 }

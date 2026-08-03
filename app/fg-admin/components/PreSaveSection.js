@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { getMexicoDateKey } from '../../../lib/campaign-state';
 import styles from '../page.module.css';
 
 const PLATFORM_PRESETS = [
@@ -21,6 +22,15 @@ const formatDate = (value) => {
   }).format(date);
 };
 
+const isValidUrl = (value) => {
+  try {
+    const url = new URL(String(value ?? '').trim());
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 export default function PreSaveSection({
   preSaves,
   draft,
@@ -28,6 +38,8 @@ export default function PreSaveSection({
   selectedId,
   uploadingCover,
   uploadingBackground,
+  coverProgress,
+  backgroundProgress,
   saving,
   error,
   message,
@@ -41,17 +53,35 @@ export default function PreSaveSection({
   onSave,
   onDelete,
 }) {
+  const isUpcoming = draft.releaseDate
+    ? draft.releaseDate > getMexicoDateKey()
+    : true;
+  const publicationRequirements = [
+    { label: 'Título', complete: Boolean(draft.title?.trim()) },
+    { label: 'Fecha', complete: /^\d{4}-\d{2}-\d{2}$/.test(draft.releaseDate || '') },
+    { label: 'Portada', complete: Boolean(draft.cover) },
+    { label: 'Fondo', complete: Boolean(draft.background) },
+    {
+      label: isUpcoming ? 'Enlace de pre-save' : 'Enlace para escuchar',
+      complete: (draft.platforms ?? []).some((platform) => (
+        isUpcoming
+          ? isValidUrl(platform.link)
+          : isValidUrl(platform.releaseLink || platform.link)
+      )),
+    },
+  ];
+
   return (
     <div className={styles.preSaveSection}>
       <div className={styles.sectionTitleRow}>
         <div>
           <p className={styles.sectionEyebrow}>Campañas</p>
-          <h2>Pre-save</h2>
+          <h2>Lanzamiento</h2>
           <p className={styles.editorHint}>
-            Prepara enlaces para próximos estrenos y publícalos en fragmentado.com/pre-save.
+            Prepara la campaña activa para fragmentado.com/lanzamiento.
           </p>
         </div>
-        <a className={styles.previewSiteLink} href="/pre-save" target="_blank" rel="noopener noreferrer">
+        <a className={styles.previewSiteLink} href="/lanzamiento" target="_blank" rel="noopener noreferrer">
           Ver página pública ↗
         </a>
       </div>
@@ -71,12 +101,11 @@ export default function PreSaveSection({
                 className={campaign.id === selectedId ? styles.preSaveItemActive : styles.preSaveItem}
                 onClick={() => onSelect(campaign)}
               >
-                <Image
-                  src={campaign.cover || '/pausa-min.jpg'}
-                  alt=""
-                  width={58}
-                  height={58}
-                />
+                <span className={styles.preSaveItemMedia}>
+                  {campaign.cover ? (
+                    <Image src={campaign.cover} alt="" width={58} height={58} />
+                  ) : null}
+                </span>
                 <span>
                   <strong>{campaign.title}</strong>
                   <small>{formatDate(campaign.releaseDate)}</small>
@@ -110,18 +139,43 @@ export default function PreSaveSection({
             </label>
           </div>
 
+          {draft.published ? (
+            <div className={styles.publishChecklist} aria-label="Requisitos de publicación">
+              <strong>Lista para publicar</strong>
+              <div>
+                {publicationRequirements.map((requirement) => (
+                  <span
+                    key={requirement.label}
+                    className={requirement.complete ? styles.publishCheckReady : styles.publishCheckMissing}
+                  >
+                    <b aria-hidden="true">{requirement.complete ? '✓' : '!'}</b>
+                    {requirement.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className={styles.preSaveMainFields}>
             <section className={styles.preSaveCoverArea}>
               <div className={styles.preSaveCoverPreview}>
-                <Image
-                  src={draft.cover || '/pausa-min.jpg'}
-                  alt={draft.title ? `Portada de ${draft.title}` : 'Portada del lanzamiento'}
-                  width={460}
-                  height={460}
-                />
+                {draft.cover ? (
+                  <Image
+                    src={draft.cover}
+                    alt={draft.title ? `Portada de ${draft.title}` : 'Portada del lanzamiento'}
+                    width={460}
+                    height={460}
+                  />
+                ) : null}
+                {uploadingCover ? (
+                  <div className={styles.preSaveUploadProgress} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={coverProgress}>
+                    <strong>{coverProgress}%</strong>
+                    <progress max="100" value={coverProgress} />
+                  </div>
+                ) : null}
               </div>
               <label className={styles.preSaveUploadButton}>
-                {uploadingCover ? 'Subiendo portada...' : 'Cambiar portada'}
+                {uploadingCover ? 'Subiendo portada...' : draft.cover ? 'Cambiar portada' : 'Subir portada'}
                 <input
                   className={styles.hiddenInput}
                   type="file"
@@ -173,13 +227,21 @@ export default function PreSaveSection({
               <p>1920 × 1080 px · JPG, PNG, WebP o AVIF · máximo 20 MB.</p>
             </div>
             <div className={styles.preSaveBackgroundPreview}>
-              <Image
-                src={draft.background || draft.cover || '/pausa-min.jpg'}
-                alt="Vista previa del fondo de campaña"
-                width={1280}
-                height={720}
-              />
-              <span>{draft.background ? 'Fondo personalizado' : 'Usando la portada'}</span>
+              {draft.background ? (
+                <Image
+                  src={draft.background}
+                  alt="Vista previa del fondo de campaña"
+                  width={1280}
+                  height={720}
+                />
+              ) : null}
+              {draft.background ? <span>Fondo personalizado</span> : null}
+              {uploadingBackground ? (
+                <div className={styles.preSaveUploadProgress} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={backgroundProgress}>
+                  <strong>{backgroundProgress}%</strong>
+                  <progress max="100" value={backgroundProgress} />
+                </div>
+              ) : null}
             </div>
             <div className={styles.preSaveBackgroundActions}>
               <label className={styles.preSaveUploadButton}>
@@ -213,21 +275,33 @@ export default function PreSaveSection({
             <div className={styles.preSavePlatformsHead}>
               <div>
                 <p className={styles.sectionEyebrow}>Destinos</p>
-                <h3>Enlaces de pre-save</h3>
+                <h3>Enlaces de plataformas</h3>
               </div>
-              <p>Deja vacío lo que todavía no esté disponible.</p>
+              <p>Pre-save antes de la fecha; escuchar después del estreno.</p>
             </div>
             <div className={styles.preSavePlatformGrid}>
               {PLATFORM_PRESETS.map((platform) => (
-                <label key={platform.id}>
-                  <span>{platform.label}</span>
-                  <input
-                    type="url"
-                    value={draft.platforms?.find((item) => item.id === platform.id)?.link || ''}
-                    onChange={(event) => onPlatformChange(platform, event.target.value)}
-                    placeholder="https://..."
-                  />
-                </label>
+                <div className={styles.preSavePlatformRow} key={platform.id}>
+                  <strong>{platform.label}</strong>
+                  <label>
+                    <span>Pre-save</span>
+                    <input
+                      type="url"
+                      value={draft.platforms?.find((item) => item.id === platform.id)?.link || ''}
+                      onChange={(event) => onPlatformChange(platform, 'link', event.target.value)}
+                      placeholder="https://..."
+                    />
+                  </label>
+                  <label>
+                    <span>Escuchar</span>
+                    <input
+                      type="url"
+                      value={draft.platforms?.find((item) => item.id === platform.id)?.releaseLink || ''}
+                      onChange={(event) => onPlatformChange(platform, 'releaseLink', event.target.value)}
+                      placeholder="https://..."
+                    />
+                  </label>
+                </div>
               ))}
             </div>
           </section>

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getReleases, setReleases } from '../../../../lib/server/content-store';
 import { getSessionUsername } from '../../../../lib/server/admin-auth';
 
@@ -111,6 +112,7 @@ export async function POST(request) {
 
   const nextReleases = [...releases, newRelease];
   await setReleases(nextReleases);
+  revalidateTag('public-content');
   return NextResponse.json({ releases: nextReleases });
 }
 
@@ -134,6 +136,7 @@ export async function PUT(request) {
   const nextReleases = [...releases];
   nextReleases[index] = release;
   await setReleases(nextReleases);
+  revalidateTag('public-content');
   return NextResponse.json({ releases: nextReleases });
 }
 
@@ -164,5 +167,6 @@ export async function DELETE(request) {
   }
 
   await setReleases(nextReleases);
+  revalidateTag('public-content');
   return NextResponse.json({ releases: nextReleases });
 }

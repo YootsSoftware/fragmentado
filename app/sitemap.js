@@ -7,7 +7,7 @@ export default function sitemap() {
       priority: 1,
     },
     {
-      url: 'https://fragmentado.com/pre-save',
+      url: 'https://fragmentado.com/lanzamiento',
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,

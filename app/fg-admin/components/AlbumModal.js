@@ -21,42 +21,51 @@ export default function AlbumModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.modalHead}>
-          <h3 className={styles.subheading}>
-            {albumModalMode === 'edit' ? 'Editar disco' : 'Nuevo disco'}
-          </h3>
+          <div className={styles.modalTitleGroup}>
+            <p className={styles.sectionEyebrow}>Discografía</p>
+            <h3>{albumModalMode === 'edit' ? 'Editar disco' : 'Nuevo disco'}</h3>
+            <p>
+              {albumModalMode === 'edit'
+                ? 'Actualiza la información que organiza este lanzamiento.'
+                : 'Crea un espacio para agrupar sus canciones.'}
+            </p>
+          </div>
           <button type="button" className={styles.modalClose} onClick={onClose} aria-label="Cerrar modal" title="Cerrar">
             ×
           </button>
         </div>
-        <form className={styles.form} onSubmit={onSaveAlbum}>
-          <label>
-            Titulo del disco
-            <input
-              value={albumDraft.title}
-              onChange={(event) => setAlbumDraft((prev) => ({ ...prev, title: event.target.value }))}
-              placeholder="Relatando Historias"
-              required
-            />
-          </label>
-          <label>
-            Año
-            <select
-              value={albumDraft.year}
-              onChange={(event) => setAlbumDraft((prev) => ({ ...prev, year: event.target.value }))}
-            >
-              {YEAR_OPTIONS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className={styles.actions}>
-            <button type="submit" className={styles.buttonSuccess}>
-              {albumModalMode === 'edit' ? 'Guardar cambios' : 'Crear disco'}
-            </button>
+        <form className={`${styles.form} ${styles.albumModalForm}`} onSubmit={onSaveAlbum}>
+          <div className={styles.albumModalFields}>
+            <label>
+              Título del disco
+              <input
+                value={albumDraft.title}
+                onChange={(event) => setAlbumDraft((prev) => ({ ...prev, title: event.target.value }))}
+                placeholder="Relatando Historias"
+                required
+                autoFocus
+              />
+            </label>
+            <label>
+              Año
+              <select
+                value={albumDraft.year}
+                onChange={(event) => setAlbumDraft((prev) => ({ ...prev, year: event.target.value }))}
+              >
+                {YEAR_OPTIONS.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className={`${styles.actions} ${styles.albumModalActions}`}>
             <button type="button" className={styles.buttonNeutral} onClick={onClose}>
               Cancelar
+            </button>
+            <button type="submit" className={styles.buttonSuccess}>
+              {albumModalMode === 'edit' ? 'Guardar cambios' : 'Crear disco'}
             </button>
           </div>
         </form>

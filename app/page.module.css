@@ -86,12 +86,22 @@
 .wordmark {
   position: relative;
   z-index: 2;
-  font-family: copasetic, Inter, sans-serif;
-  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: copasetic, var(--font-manrope), sans-serif;
+  font-size: 1rem;
   line-height: 1;
   color: var(--paper);
   text-transform: uppercase;
   letter-spacing: 0;
+}
+
+.headerMonogram {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .navigation {
@@ -234,7 +244,7 @@
 .heroContent h1 {
   max-width: 980px;
   margin: 0.35rem 0 0;
-  font-family: copasetic, Inter, sans-serif;
+  font-family: copasetic, var(--font-manrope), sans-serif;
   font-size: 7.75rem;
   font-weight: 400;
   line-height: 0.82;
@@ -388,6 +398,18 @@
 @keyframes scrollCue {
   0%, 100% { opacity: 0.3; transform: translate(-50%, 0); }
   50% { opacity: 1; transform: translate(-50%, 12px); }
+}
+
+.introduction,
+.featuredSection,
+.catalogSection,
+.videoSection,
+.historySection,
+.liveSection,
+.pressSection,
+.contactSection {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 900px;
 }
 
 .introduction,
@@ -845,7 +867,7 @@
 .historySection {
   min-height: 760px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 48%) minmax(0, 52%);
   background: #111312;
 }
 
@@ -861,18 +883,18 @@
 }
 
 .historyCopy {
-  padding: 7rem max(4vw, calc((100vw - 1240px) / 2));
+  padding: 7rem 4vw 7rem max(4vw, calc((100vw - 1240px) / 2));
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .historyCopy h2 {
-  max-width: 620px;
+  max-width: 680px;
 }
 
 .historyCopy > p:not(.eyebrow) {
-  max-width: 610px;
+  max-width: 640px;
   margin: 1.2rem 0 0;
   color: var(--muted);
   font-size: 1rem;
@@ -1171,7 +1193,7 @@
 }
 
 .footer strong {
-  font-family: copasetic, Inter, sans-serif;
+  font-family: copasetic, var(--font-manrope), sans-serif;
   font-size: 1.7rem;
   font-weight: 400;
   text-transform: uppercase;
@@ -1212,12 +1234,16 @@
 }
 
 .page a:focus-visible,
-.page button:focus-visible,
+.page button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
 .page input:focus-visible,
 .page select:focus-visible,
 .page textarea:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
+  outline: none;
+  outline-offset: 0;
 }
 
 @media (max-width: 1050px) {
@@ -1241,6 +1267,9 @@
     height: 66px;
     padding: 0 1rem;
   }
+
+  .wordmark { font-size: 0.92rem; }
+  .headerMonogram { width: 29px; height: 29px; }
 
   .menuButton {
     position: relative;

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getSessionUsername } from '../../../../lib/server/admin-auth';
 import { getSettings, setSettings } from '../../../../lib/server/content-store';
 import { getSpotifyConfigFromEnv } from '../../../../lib/server/spotify-config';
@@ -53,5 +54,7 @@ export async function PUT(request) {
   const payload = normalizePayload(body?.settings);
 
   const settings = await setSettings(payload);
+  revalidateTag('public-content');
+  revalidateTag('public-pre-saves');
   return NextResponse.json({ settings });
 }

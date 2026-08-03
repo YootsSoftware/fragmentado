@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getAlbums, getReleases, setAlbums } from '../../../../lib/server/content-store';
 import { getSessionUsername } from '../../../../lib/server/admin-auth';
 
@@ -45,6 +46,7 @@ export async function POST(request) {
 
   const next = [...albums, album];
   await setAlbums(next);
+  revalidateTag('public-content');
   return NextResponse.json({ albums: next });
 }
 
@@ -68,6 +70,7 @@ export async function PUT(request) {
   const next = [...albums];
   next[index] = album;
   await setAlbums(next);
+  revalidateTag('public-content');
   return NextResponse.json({ albums: next });
 }
 
@@ -96,5 +99,6 @@ export async function DELETE(request) {
   }
 
   await setAlbums(next);
+  revalidateTag('public-content');
   return NextResponse.json({ albums: next });
 }

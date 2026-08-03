@@ -126,6 +126,7 @@ export async function GET(request) {
     return NextResponse.json({
       trackId,
       previewUrl: String(track?.preview_url ?? ''),
+      cover: String(track?.album?.images?.[0]?.url ?? ''),
     });
   } catch (error) {
     return NextResponse.json(

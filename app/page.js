@@ -16,6 +16,9 @@ import { SITE_CONTENT } from '../lib/site-content';
 import styles from './page.module.css';
 
 const DARK_BASE = [13, 14, 15];
+const MIN_LOADING_TIME = 650;
+const DEFERRED_MEDIA_DELAY = 900;
+const HERO_VIDEO_START_SECONDS = 20;
 const DEFAULT_HERO_SETTINGS = {
   mediaType: 'youtube',
   releaseId: 'donde-empieza-termina',
@@ -39,11 +42,17 @@ const mixColor = (a, b, ratio) => [
 
 const rgbToString = (rgb) => `${rgb[0]} ${rgb[1]} ${rgb[2]}`;
 
+const getPaletteImageUrl = (src) => {
+  const value = String(src ?? '').trim();
+  if (!value || value.startsWith('data:') || value.startsWith('blob:')) return value;
+  return `/_next/image?url=${encodeURIComponent(value)}&w=64&q=60`;
+};
+
 const getAmbientPaletteFromImage = (src) =>
   new Promise((resolve) => {
     const image = new window.Image();
     image.crossOrigin = 'anonymous';
-    image.src = src;
+    image.src = getPaletteImageUrl(src);
 
     image.onload = () => {
       const canvas = document.createElement('canvas');
@@ -265,6 +274,7 @@ export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState('');
   const [isHeroVideoReady, setIsHeroVideoReady] = useState(false);
+  const [shouldLoadHeroVideo, setShouldLoadHeroVideo] = useState(false);
   const [ambientPalette, setAmbientPalette] = useState({
     a: [45, 38, 31],
     b: [93, 43, 35],
@@ -334,7 +344,7 @@ export default function Home() {
     const loadingStartedAt = performance.now();
     const loadContent = async () => {
       try {
-        const response = await fetch('/api/releases', { cache: 'no-store' });
+        const response = await fetch('/api/releases');
         if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
         const data = await response.json();
         if (cancelled) return;
@@ -354,7 +364,10 @@ export default function Home() {
       } catch {
         if (!cancelled) setReleases([]);
       } finally {
-        const remainingAnimationTime = Math.max(0, 1050 - (performance.now() - loadingStartedAt));
+        const remainingAnimationTime = Math.max(
+          0,
+          MIN_LOADING_TIME - (performance.now() - loadingStartedAt),
+        );
         readyTimer = window.setTimeout(() => {
           if (!cancelled) setIsInitialDataReady(true);
         }, remainingAnimationTime);
@@ -367,6 +380,18 @@ export default function Home() {
       window.clearTimeout(readyTimer);
     };
   }, []);
+
+  useEffect(() => {
+    setShouldLoadHeroVideo(false);
+    if (!isInitialDataReady || !heroVideoId) return undefined;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const savesData = Boolean(navigator.connection?.saveData);
+    if (prefersReducedMotion || savesData) return undefined;
+
+    const timer = window.setTimeout(() => setShouldLoadHeroVideo(true), DEFERRED_MEDIA_DELAY);
+    return () => window.clearTimeout(timer);
+  }, [heroVideoId, isInitialDataReady]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 24);
@@ -401,20 +426,23 @@ export default function Home() {
     if (!spotifyLink) return;
 
     let cancelled = false;
-    fetch(`/api/spotify/preview?url=${encodeURIComponent(spotifyLink)}`, { cache: 'no-store' })
-      .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
-      .then(({ ok, data }) => {
-        if (!cancelled && ok && data?.previewUrl) {
-          setPreviewByRelease((current) => ({
-            ...current,
-            [activeRelease.id]: String(data.previewUrl),
-          }));
-        }
-      })
-      .catch(() => {});
+    const timer = window.setTimeout(() => {
+      fetch(`/api/spotify/preview?url=${encodeURIComponent(spotifyLink)}`, { cache: 'no-store' })
+        .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+        .then(({ ok, data }) => {
+          if (!cancelled && ok && data?.previewUrl) {
+            setPreviewByRelease((current) => ({
+              ...current,
+              [activeRelease.id]: String(data.previewUrl),
+            }));
+          }
+        })
+        .catch(() => {});
+    }, DEFERRED_MEDIA_DELAY);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [activeRelease, previewByRelease]);
 
@@ -461,22 +489,25 @@ export default function Home() {
 
   if (!isInitialDataReady) {
     return (
-      <main className={styles.loadingScreen} role="status" aria-live="polite">
-        <video
-          className={styles.loadingMonogram}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster={monogram.src}
-          aria-hidden="true"
-        >
-          <source src="/fragmentado-loader.webm" type="video/webm" />
-          <source src="/fragmentado-loader.mp4" type="video/mp4" />
-        </video>
-        <p>Fragmentado...</p>
-      </main>
+      <>
+        <link rel="preload" href="/api/releases" as="fetch" crossOrigin="anonymous" />
+        <main className={styles.loadingScreen} role="status" aria-live="polite">
+          <video
+            className={styles.loadingMonogram}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster={monogram.src}
+            aria-hidden="true"
+          >
+            <source src="/fragmentado-loader.webm" type="video/webm" />
+            <source src="/fragmentado-loader.mp4" type="video/mp4" />
+          </video>
+          <p>Fragmentado...</p>
+        </main>
+      </>
     );
   }
 
@@ -511,7 +542,14 @@ export default function Home() {
 
       <header className={`${styles.siteHeader} ${isScrolled ? styles.siteHeaderScrolled : ''}`}>
         <a className={styles.wordmark} href="#inicio" onClick={() => setIsMenuOpen(false)}>
-          {artistName}
+          <Image
+            className={styles.headerMonogram}
+            src={monogram}
+            alt=""
+            aria-hidden="true"
+            priority
+          />
+          <span>{artistName}</span>
         </a>
         <button
           type="button"
@@ -533,22 +571,25 @@ export default function Home() {
 
       <main>
         <section className={styles.hero} id="inicio">
-          <Image
-            className={styles.heroImage}
-            src="/pausa-min.jpg"
-            alt="Integrantes de Fragmentado en el arte audiovisual de Pausa al Amor"
-            fill
-            priority
-            sizes="100vw"
-          />
-          {heroVideoId ? (
+          {!heroVideoId ? (
+            <Image
+              className={styles.heroImage}
+              src="/pausa-min.jpg"
+              alt="Integrantes de Fragmentado en el arte audiovisual de Pausa al Amor"
+              fill
+              priority
+              sizes="100vw"
+            />
+          ) : null}
+          {heroVideoId && shouldLoadHeroVideo ? (
             <div className={styles.heroVideoFrame} aria-hidden="true">
               <iframe
                 className={`${styles.heroVideo} ${isHeroVideoReady ? styles.heroVideoReady : ''}`}
-                src={`https://www.youtube-nocookie.com/embed/${heroVideoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroVideoId}&playsinline=1&rel=0&iv_load_policy=3&disablekb=1&fs=0`}
+                src={`https://www.youtube-nocookie.com/embed/${heroVideoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroVideoId}&start=${HERO_VIDEO_START_SECONDS}&playsinline=1&rel=0&iv_load_policy=3&disablekb=1&fs=0`}
                 title={`Video de fondo: ${heroVideoRelease?.title ?? 'Fragmentado'}`}
                 allow="autoplay; encrypted-media"
                 referrerPolicy="strict-origin-when-cross-origin"
+                loading="lazy"
                 tabIndex="-1"
                 onLoad={() => setIsHeroVideoReady(true)}
               />
@@ -630,7 +671,7 @@ export default function Home() {
                   alt={`Portada de ${activeRelease.title}`}
                   width={720}
                   height={720}
-                  priority
+                  loading="lazy"
                   sizes="(max-width: 800px) 100vw, 50vw"
                 />
                 <button

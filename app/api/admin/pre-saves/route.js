@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getSessionUsername } from '../../../../lib/server/admin-auth';
+import { getMexicoDateKey } from '../../../../lib/campaign-state';
 import { getPreSaves, setPreSaves } from '../../../../lib/server/content-store';
 
 const MAX_CAMPAIGNS = 50;
@@ -47,8 +49,11 @@ const normalizePreSave = (value) => ({
           id: slugify(platform?.id || platform?.label),
           label: String(platform?.label ?? '').trim().slice(0, 60),
           link: normalizeUrl(platform?.link),
+          releaseLink: normalizeUrl(platform?.releaseLink),
         }))
-        .filter((platform) => platform.id && platform.label && platform.link)
+        .filter(
+          (platform) => platform.id && platform.label && (platform.link || platform.releaseLink),
+        )
     : [],
   createdAt: String(value?.createdAt ?? '').trim(),
   updatedAt: String(value?.updatedAt ?? '').trim(),
@@ -65,8 +70,18 @@ const validatePreSave = (preSave) => {
   if (preSave.published && !preSave.cover) {
     return 'Agrega una portada antes de publicar la campaña.';
   }
-  if (preSave.published && !preSave.platforms.length) {
-    return 'Agrega al menos un enlace de pre-save antes de publicar.';
+  if (preSave.published && !preSave.background) {
+    return 'Agrega un fondo antes de publicar la campaña.';
+  }
+  if (preSave.published && preSave.releaseDate > getMexicoDateKey()) {
+    if (!preSave.platforms.some((platform) => platform.link)) {
+      return 'Agrega al menos un enlace de pre-save antes de publicar.';
+    }
+  } else if (
+    preSave.published
+    && !preSave.platforms.some((platform) => platform.releaseLink || platform.link)
+  ) {
+    return 'Agrega al menos un enlace para escuchar antes de publicar.';
   }
   return '';
 };
@@ -101,7 +116,10 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Ya existe una campaña con ese identificador.' }, { status: 409 });
   }
 
-  return NextResponse.json({ preSaves: await setPreSaves([...preSaves, preSave]) });
+  const next = await setPreSaves([...preSaves, preSave]);
+  revalidateTag('public-pre-saves');
+  revalidateTag('public-content');
+  return NextResponse.json({ preSaves: next });
 }
 
 export async function PUT(request) {
@@ -124,7 +142,10 @@ export async function PUT(request) {
 
   const next = [...preSaves];
   next[index] = { ...preSave, createdAt: preSaves[index].createdAt || preSave.createdAt };
-  return NextResponse.json({ preSaves: await setPreSaves(next) });
+  const saved = await setPreSaves(next);
+  revalidateTag('public-pre-saves');
+  revalidateTag('public-content');
+  return NextResponse.json({ preSaves: saved });
 }
 
 export async function DELETE(request) {
@@ -141,5 +162,8 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'No existe esa campaña.' }, { status: 404 });
   }
 
-  return NextResponse.json({ preSaves: await setPreSaves(next) });
+  const saved = await setPreSaves(next);
+  revalidateTag('public-pre-saves');
+  revalidateTag('public-content');
+  return NextResponse.json({ preSaves: saved });
 }
